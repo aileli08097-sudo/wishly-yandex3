@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Wishly</h1>
+{% for item in lists %}
+<h2>Вишлист # {{item.id}}</h2>
+<div class="table_container">
+    <table>
+        <tr>
+            <td class="title" width="400px" bgcolor="#dddddd">Название</td>
+            <td class="title" width="400px" bgcolor="#dddddd">Автор</td>
+            <td class="title" width="150px" bgcolor="#dddddd">Дата</td>
+            <td class="title" width="100px" bgcolor="#dddddd">Время</td>
+            <td class="title" width="100px" bgcolor="#dddddd">Уведомлять ли</td>
+        </tr>
+        <tr>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.feast.capitalize() }}</td>
+            <td class="ordinary" bgcolor="#eeeeff">{{ names[item.user_id] }}</td>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.date }} hours</td>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.time }}</td>
+            {% if item.notification %}
+            <td class="ordinary" bgcolor="#eeffee">Yes</td>
+            {% else %}
+            <td class="ordinary" bgcolor="#ffeeff">No</td>
+            {% endif %}
+        </tr>
+    </table>
+</div>
+{% endfor %}
+{% endblock %}
