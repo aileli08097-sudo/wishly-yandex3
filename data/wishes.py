@@ -11,8 +11,8 @@ class Wishes(SqlAlchemyBase, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    bio = sqlalchemy.Column(sqlalchemy.Text, nullable=True)
-    url = sqlalchemy.Column(sqlalchemy.Text, nullable=True)
+    bio = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     list_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('lists.id'))
     lists = orm.relationship('Lists')
 

@@ -79,20 +79,24 @@ def add_list():
         db_sess = db_session.create_session()
         lst = Lists()
         lst.feast = form.feast.data
-        lst.date = form.date.data
-        lst.time = form.time.data
-        lst.notification = form.notification.data
-        lst.user_id = current_user.id
-        db_sess.add(lst)
-        db_sess.commit()
-        return redirect(f'/list{lst.id}')
+        if (datetime.date.today() - form.date.data).days < 0:
+            lst.date = form.date.data
+            lst.time = form.time.data
+            lst.notification = form.notification.data
+            lst.user_id = current_user.id
+            db_sess.add(lst)
+            db_sess.commit()
+            return redirect(f'/list{lst.id}')
+        return render_template('add_list.html',
+                               message="Введите не прошедшую дату",
+                               form=form)
     return render_template('add_list.html', title='Добавление вишлиста',
                            form=form)
 
 @application.route('/list<int:list_id>')
 def lst(list_id):
     db_sess = db_session.create_session()
-    lst = db_sess.query(Lists).filter_by(id=list_id).first()
+    lst = db_sess.get(Lists, list_id)
     wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
     return render_template('list.html', lst=lst, wishes=wishes)
 
@@ -103,13 +107,13 @@ def add_wish(list_id):
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         wish = Wishes()
-        wish.feast = form.name.data
-        wish.date = form.bio.data
-        wish.time = form.url.data
+        wish.name = form.name.data
+        wish.bio = form.bio.data
+        wish.url = form.url.data
         wish.list_id = list_id
         db_sess.add(wish)
         db_sess.commit()
-        return redirect(f'/list{list_id}')
+        return redirect('/')
     return render_template('add_wish.html', title='Добавление желания',
                            form=form)
 
@@ -127,7 +131,7 @@ def main():
     application.register_blueprint(lists_api.blueprint)
     api.add_resource(UserListResource, '/api/v2/users')
     api.add_resource(UserResource, '/api/v2/users/<int:user_id>')
-    application.run()
+    application.run(debug=True)
 
 
 if __name__ == '__main__':
