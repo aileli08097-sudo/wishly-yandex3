@@ -12,9 +12,9 @@ class Lists(SqlAlchemyBase, SerializerMixin):
                            primary_key=True, autoincrement=True)
     feast = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     date = sqlalchemy.Column(sqlalchemy.Date,
-                                   default=datetime.date.today)
+                                   default=datetime.date.today, nullable=True)
     time = sqlalchemy.Column(sqlalchemy.Time,
-                             default=datetime.time(hour=13, minute=30))
+                             default=datetime.time(hour=13, minute=30), nullable=True)
     notification = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     user = orm.relationship('User')

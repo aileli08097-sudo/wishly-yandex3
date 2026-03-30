@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-center">Wishly</h1>
+<h1 class="text-center">Ваши вишлисты</h1>
 {% for item in lists %}
-<h2>Вишлист # {{item.id}}</h2>
+<h3>Вишлист # {{item.id}}</h3>
 <div class="table_container">
     <table>
         <tr>
@@ -14,10 +14,10 @@
             <td class="title" width="100px" bgcolor="#dddddd">Уведомлять ли</td>
         </tr>
         <tr>
-            <td class="ordinary" bgcolor="#eeeeff">{{ item.feast.capitalize() }}</td>
+            <td class="ordinary" bgcolor="#eeeeff"><a  href="/list{{ item.id }}">{{ item.feast.capitalize() }}</a></td>
             <td class="ordinary" bgcolor="#eeeeff">{{ names[item.user_id] }}</td>
-            <td class="ordinary" bgcolor="#eeeeff">{{ item.date }} hours</td>
-            <td class="ordinary" bgcolor="#eeeeff">{{ item.time }}</td>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.date }}</td>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.time.strftime('%H:%M') }}</td>
             {% if item.notification %}
             <td class="ordinary" bgcolor="#eeffee">Yes</td>
             {% else %}

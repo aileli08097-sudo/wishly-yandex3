@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect
 from data import lists_api
+from data.wishes import Wishes
 from forms.login_form import LoginForm
 from data.lists import Lists
 from data.users_resource import *
@@ -7,6 +8,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_restful import Api
 from forms.registr_form import RegistrForm
 from forms.list_form import ListForm
+from forms.wish_form import WishForm
 
 application = Flask(__name__)
 application.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -75,16 +77,40 @@ def add_list():
     form = ListForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        list = Lists()
-        list.feast = form.feast.data
-        list.date = form.date.data
-        list.time = form.time.data
-        list.notification = form.notification.data
-        list.user_id = current_user.id
-        db_sess.add(list)
+        lst = Lists()
+        lst.feast = form.feast.data
+        lst.date = form.date.data
+        lst.time = form.time.data
+        lst.notification = form.notification.data
+        lst.user_id = current_user.id
+        db_sess.add(lst)
         db_sess.commit()
-        return redirect('/')
+        return redirect(f'/list{lst.id}')
     return render_template('add_list.html', title='Добавление вишлиста',
+                           form=form)
+
+@application.route('/list<int:list_id>')
+def lst(list_id):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter_by(id=list_id).first()
+    wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
+    return render_template('list.html', lst=lst, wishes=wishes)
+
+@application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
+@login_required
+def add_wish(list_id):
+    form = WishForm()
+    if form.validate_on_submit():
+        db_sess = db_session.create_session()
+        wish = Wishes()
+        wish.feast = form.name.data
+        wish.date = form.bio.data
+        wish.time = form.url.data
+        wish.list_id = list_id
+        db_sess.add(wish)
+        db_sess.commit()
+        return redirect(f'/list{list_id}')
+    return render_template('add_wish.html', title='Добавление желания',
                            form=form)
 
 

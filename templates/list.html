@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="text-center">Вишлист # {{lst.id}}: {{lst.feast}}</h2>
+<a class="nav-link btn btn-outline-success" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+{% for item in wishes %}
+<div class="table_container">
+    <table>
+        <tr>
+            <td class="title" width="400px" bgcolor="#dddddd">Название</td>
+            <td class="title" width="600px" bgcolor="#dddddd">Описание</td>
+            <td class="title" width="200px" bgcolor="#dddddd">Ссылка</td>
+        </tr>
+        <tr>
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.name.capitalize() }}</td>
+            {% if item.bio %}
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.bio }}</td>
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Без описания</td>
+            {% endif %}
+            {% if item.url %}
+            <td class="ordinary" bgcolor="#eeeeff"><a href="{{ item.url }}">Ссылка</a></td>
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
+            {% endif %}
+
+        </tr>
+    </table>
+</div>
+{% endfor %}
+{% endblock %}
