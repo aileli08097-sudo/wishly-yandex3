@@ -5,7 +5,6 @@
     <h2 class="text-center">Вишлист №{{lst.id}}: {{lst.feast}}</h2>
     <a class="nav-link btn btn-outline-success" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
     {% if wishes %}
-        {% for item in wishes %}
 
         <div class="table_container">
             <table class="table table-bordered">
@@ -17,6 +16,7 @@
                     </tr>
                 </thead>
                 <tbody>
+        {% for item in wishes %}
                 <tr>
                     <td class="ordinary" bgcolor="#eeeeff">{{ item.name.capitalize() }}</td>
                     {% if item.bio %}
@@ -32,10 +32,10 @@
                     <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
                     {% endif %}
                 </tr>
+        {% endfor %}
                 </tbody>
             </table>
         </div>
-        {% endfor %}
     {% else %}
         <div class="alert alert-info">
             В этом вишлисте пока нет желаний. Добавьте первое!

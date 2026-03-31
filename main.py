@@ -9,9 +9,13 @@ from flask_restful import Api
 from forms.registr_form import RegistrForm
 from forms.list_form import ListForm
 from forms.wish_form import WishForm
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 application = Flask(__name__)
-application.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
+application.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 login_manager = LoginManager()
 login_manager.init_app(application)
@@ -113,7 +117,7 @@ def add_wish(list_id):
         wish.list_id = list_id
         db_sess.add(wish)
         db_sess.commit()
-        return redirect('/')
+        return redirect(f'/list{list_id}')
     return render_template('add_wish.html', title='Добавление желания',
                            form=form)
 
