@@ -79,7 +79,6 @@ def registration():
                 user.email = form.email.data
                 if form.password1.data == form.password2.data:
                     user.hashed_password = form.password1.data
-                    user.remember_me = form.remember_me.data
                     user.set_password(user.hashed_password)
                     db_sess.add(user)
                     db_sess.commit()
