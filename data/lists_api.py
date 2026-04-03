@@ -18,7 +18,7 @@ def get_lists():
         {
             'lists':
                 [item.to_dict(only=(
-                    'id', 'feast', 'date', 'time', 'notification', 'user_id'))
+                    'id', 'feast', 'date', 'time', 'notification', 'user_id', 'token'))
                     for item in lists]
         }
     )
@@ -33,7 +33,7 @@ def get_one_list(lists_id):
     return jsonify(
         {
             'list': lists.to_dict(only=(
-                'id', 'feast', 'date', 'time', 'notification', 'user_id'))
+                'id', 'feast', 'date', 'time', 'notification', 'user_id', 'token'))
         }
     )
 
@@ -43,7 +43,7 @@ def create_list():
     if not request.json:
         return make_response(jsonify({'error': 'Empty request'}), 400)
     elif not all(key in request.json for key in
-                 ['feast', 'date', 'time', 'notification', 'user_id']):
+                 ['feast', 'date', 'time', 'notification', 'user_id', 'token']):
         return make_response(jsonify({'error': 'Bad request'}), 400)
     db_sess = db_session.create_session()
     list = Lists(
@@ -51,7 +51,8 @@ def create_list():
         date=request.json['date'],
         time=request.json['time'],
         notification=request.json['notification'],
-        user_id=request.json['user_id']
+        user_id=request.json['user_id'],
+        token=request.json['token']
     )
     db_sess.add(list)
     db_sess.commit()

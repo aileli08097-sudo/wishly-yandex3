@@ -3,9 +3,12 @@
 {% block content %}
 {% if lst %}
     <h2 class="text-center">Вишлист №{{lst.id}}: {{lst.feast}}</h2>
-<div class="d-flex justify-content-center">
-    <a class="nav-link btn btn-outline-warning" style="width: 200px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
-</div>
+{% if not is_shared_view %}
+    <p>Ссылка этого вишлиста: {{ url }}. Поделитесь ею с близкими!</p>
+    <div class="d-flex justify-content-center">
+        <a class="nav-link btn btn-outline-warning" style="width: 200px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+    </div>
+{% endif %}
     {% if wishes %}
 
         <div class="table_container">
@@ -40,7 +43,11 @@
         </div>
     {% else %}
         <div class="alert alert-info">
+            {% if not is_shared_view %}
             В этом вишлисте пока нет желаний. Добавьте первое!
+            {% else %}
+            В этом вишлисте пока нет желаний.
+            {% endif %}
         </div>
     {% endif %}
 {% else %}

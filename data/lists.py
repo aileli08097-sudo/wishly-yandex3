@@ -3,6 +3,7 @@ import sqlalchemy
 from sqlalchemy import orm
 from sqlalchemy_serializer import SerializerMixin
 from .db_session import SqlAlchemyBase
+import secrets
 
 
 class Lists(SqlAlchemyBase, SerializerMixin):
@@ -17,7 +18,11 @@ class Lists(SqlAlchemyBase, SerializerMixin):
                              default=datetime.time(hour=13, minute=30), nullable=True)
     notification = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
+    token = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
     user = orm.relationship('User')
 
     def __repr__(self):
         return f'<List> {self.feast}'
+
+    def generate_token(self):
+        self.token = secrets.token_urlsafe(32)

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, request, flash
+from flask import Flask, render_template, redirect, session, request, flash, abort, url_for
 from data import lists_api
 from data.wishes import Wishes
 from forms.code_registr_form import CodeRegistrForm
@@ -40,6 +40,7 @@ def index():
     users = db_sess.query(User).all()
     names = {item.id: f'{item.username}' for item in users}
     return render_template('index.html', lists=lists, names=names)
+
 
 @application.route('/profile')
 @login_required
@@ -107,42 +108,6 @@ def registration():
                            form=form)
 
 
-@application.route('/code_registration', methods=['GET', 'POST'])
-def code_registration():
-    form = CodeRegistrForm()
-    if 'pending_user_id' not in session:
-        return redirect('/registration')
-    if form.validate_on_submit():
-        code = request.form.get('code')
-        user_id = session.get('pending_user_id')
-        db_sess = db_session.create_session()
-        user = db_sess.get(User, user_id)
-
-        if not user:
-            flash('Пользователь не найден', 'danger')
-            return redirect('/registration')
-
-        if user.code == code:
-            time = user.time + timedelta(minutes=10)
-            if datetime.now() > time:
-                flash('Время действия кода подтверждения истекло', 'danger')
-                db_sess.delete(user)
-                db_sess.commit()
-                session.pop('pending_user_id', None)
-                return redirect('/registration')
-            user.confirmed = True
-            user.code = None
-            db_sess.commit()
-            login_user(user, remember=user.remember_me)
-            session.pop('pending_user_id', None)
-
-            flash('Почта успешно подтверждена!', 'success')
-            return redirect('/')
-        else:
-            flash('Неверный код подтверждения', 'danger')
-            return render_template('code_registr.html')
-
-
 @application.route('/add_list', methods=['GET', 'POST'])
 @login_required
 def add_list():
@@ -156,6 +121,7 @@ def add_list():
             lst.time = form.time.data
             lst.notification = form.notification.data
             lst.user_id = current_user.id
+            lst.generate_token()
             db_sess.add(lst)
             db_sess.commit()
             return redirect(f'/list{lst.id}')
@@ -167,29 +133,53 @@ def add_list():
 
 
 @application.route('/list<int:list_id>')
+@login_required
 def lst(list_id):
     db_sess = db_session.create_session()
     lst = db_sess.get(Lists, list_id)
-    wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
-    return render_template('list.html', lst=lst, wishes=wishes)
+    if lst.user_id == current_user.id:
+        wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
+        url = url_for('shared_lst', token=lst.token, _external=True)
+        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False)
+    else:
+        abort(404)
+
+
+@application.route('/shared/<string:token>')
+def shared_lst(token):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter(Lists.token == token).first()
+    if not lst:
+        abort(404)
+    try:
+        if lst.user_id == current_user.id:
+            return redirect(f'/list{lst.id}')
+    except Exception:
+        wishes = db_sess.query(Wishes).filter_by(list_id=lst.id).all()
+        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True)
 
 
 @application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
 @login_required
 def add_wish(list_id):
-    form = WishForm()
-    if form.validate_on_submit():
-        db_sess = db_session.create_session()
-        wish = Wishes()
-        wish.name = form.name.data
-        wish.bio = form.bio.data
-        wish.url = form.url.data
-        wish.list_id = list_id
-        db_sess.add(wish)
-        db_sess.commit()
-        return redirect(f'/list{list_id}')
-    return render_template('add_wish.html', title='Добавление желания',
-                           form=form)
+    db_sess = db_session.create_session()
+    lst = db_sess.get(Lists, list_id)
+    if lst.user_id == current_user.id:
+        form = WishForm()
+        if form.validate_on_submit():
+            wish = Wishes()
+            wish.name = form.name.data
+            wish.bio = form.bio.data
+            wish.url = form.url.data
+            wish.list_id = list_id
+            db_sess.add(wish)
+            db_sess.commit()
+            return redirect(f'/list{list_id}')
+        return render_template('add_wish.html', title='Добавление желания',
+                               form=form)
+    else:
+        abort(404)
+
 
 
 @application.route('/logout')
