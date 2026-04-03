@@ -70,16 +70,21 @@ def registration():
     form = RegistrForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        if validate_email(form.email.data,
-            check_deliverability=True):
-            if not db_sess.query(User).filter(User.email == form.email.data).first() and not db_sess.query(User).filter(
-                    User.username == form.username.data).first():
-                user = User()
-                user.username = form.username.data
-                user.email = form.email.data
+        try:
+            valid = validate_email(form.email.data, check_deliverability=True)
+            normal_email = valid.normalized
+        except Exception:
+            return render_template('registr.html',
+                                   message="Введите существующую почту",
+                                   form=form)
+        exist = db_sess.query(User).filter((User.email == normal_email) | (User.username == form.username.data)).first()
+        if not exist:
+            user = User()
+            user.username = form.username.data
+            user.email = normal_email
+            if len(form.password1.data) >= 8:
                 if form.password1.data == form.password2.data:
-                    user.hashed_password = form.password1.data
-                    user.set_password(user.hashed_password)
+                    user.set_password(form.password1.data)
                     db_sess.add(user)
                     db_sess.commit()
                     login_user(user, remember=form.remember_me.data)
@@ -87,17 +92,17 @@ def registration():
                 return render_template('registr.html',
                                        message="Пароли не совпадают",
                                        form=form)
-            elif db_sess.query(User).filter(User.email == form.email.data).first():
-                return render_template('registr.html',
-                                       message="Эта почта уже зарегистрирована",
-                                       form=form)
-            elif db_sess.query(User).filter(User.username == form.username.data).first():
-                return render_template('registr.html',
-                                       message="Это имя пользователя уже занято",
-                                       form=form)
-        return render_template('registr.html',
-                                       message="Введите существующую почту",
-                                       form=form)
+            return render_template('registr.html',
+                                   message="Пароль должен быть не менее 8 символов длиной",
+                                   form=form)
+        elif exist.email == form.email.data:
+            return render_template('registr.html',
+                                   message="Эта почта уже зарегистрирована",
+                                   form=form)
+        elif exist.username == form.username.data:
+            return render_template('registr.html',
+                                   message="Это имя пользователя уже занято",
+                                   form=form)
     return render_template('registr.html', title='Регистрация',
                            form=form)
 

@@ -4,7 +4,7 @@
 <h1 class="text-center">Ваш профиль</h1>
 <p><b>Имя пользователя:</b> {{ user.username }}</p>
 <p><b>Почта:</b> {{ user.email }}</p>
-<p><b>Дата регистрации:</b> {{ user.modified_data }}</p>
+<p><b>Дата регистрации:</b> {{ user.modified_date.strftime("%d.%m.%Y") }}</p>
 <p><b>Вишлисты:</b></p>
 {% if lists %}
     <div class="table_container">
