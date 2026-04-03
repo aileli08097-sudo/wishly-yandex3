@@ -1,6 +1,7 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, session, request, flash
 from data import lists_api
 from data.wishes import Wishes
+from forms.code_registr_form import CodeRegistrForm
 from forms.login_form import LoginForm
 from data.lists import Lists
 from data.users_resource import *
@@ -9,8 +10,11 @@ from flask_restful import Api
 from forms.registr_form import RegistrForm
 from forms.list_form import ListForm
 from forms.wish_form import WishForm
-import os
 from dotenv import load_dotenv
+from email_validator import validate_email
+from datetime import *
+import os
+from flask_mail import Mail
 
 load_dotenv()
 
@@ -58,21 +62,73 @@ def registration():
     form = RegistrForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        user = User()
-        user.username = form.username.data
-        user.email = form.email.data
-        if form.password1.data == form.password2.data:
-            user.hashed_password = form.password1.data
-            user.set_password(user.hashed_password)
-            db_sess.add(user)
-            db_sess.commit()
-            login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+        if validate_email(form.email.data,
+            check_deliverability=True):
+            if not db_sess.query(User).filter(User.email == form.email.data).first() and not db_sess.query(User).filter(
+                    User.username == form.username.data).first():
+                user = User()
+                user.username = form.username.data
+                user.email = form.email.data
+                if form.password1.data == form.password2.data:
+                    user.hashed_password = form.password1.data
+                    user.remember_me = form.remember_me.data
+                    user.set_password(user.hashed_password)
+                    db_sess.add(user)
+                    db_sess.commit()
+                    login_user(user, remember=form.remember_me.data)
+                    return redirect("/")
+                return render_template('registr.html',
+                                       message="Пароли не совпадают",
+                                       form=form)
+            elif db_sess.query(User).filter(User.email == form.email.data).first():
+                return render_template('registr.html',
+                                       message="Эта почта уже зарегистрирована",
+                                       form=form)
+            elif db_sess.query(User).filter(User.username == form.username.data).first():
+                return render_template('registr.html',
+                                       message="Это имя пользователя уже занято",
+                                       form=form)
         return render_template('registr.html',
-                               message="Пароли не совпадают",
-                               form=form)
+                                       message="Введите существующую почту",
+                                       form=form)
     return render_template('registr.html', title='Регистрация',
                            form=form)
+
+
+@application.route('/code_registration', methods=['GET', 'POST'])
+def code_registration():
+    form = CodeRegistrForm()
+    if 'pending_user_id' not in session:
+        return redirect('/registration')
+    if form.validate_on_submit():
+        code = request.form.get('code')
+        user_id = session.get('pending_user_id')
+        db_sess = db_session.create_session()
+        user = db_sess.get(User, user_id)
+
+        if not user:
+            flash('Пользователь не найден', 'danger')
+            return redirect('/registration')
+
+        if user.code == code:
+            time = user.time + timedelta(minutes=10)
+            if datetime.now() > time:
+                flash('Время действия кода подтверждения истекло', 'danger')
+                db_sess.delete(user)
+                db_sess.commit()
+                session.pop('pending_user_id', None)
+                return redirect('/registration')
+            user.confirmed = True
+            user.code = None
+            db_sess.commit()
+            login_user(user, remember=user.remember_me)
+            session.pop('pending_user_id', None)
+
+            flash('Почта успешно подтверждена!', 'success')
+            return redirect('/')
+        else:
+            flash('Неверный код подтверждения', 'danger')
+            return render_template('code_registr.html')
 
 
 @application.route('/add_list', methods=['GET', 'POST'])
@@ -83,7 +139,7 @@ def add_list():
         db_sess = db_session.create_session()
         lst = Lists()
         lst.feast = form.feast.data
-        if (datetime.date.today() - form.date.data).days < 0:
+        if (date.today() - form.date.data).days < 0:
             lst.date = form.date.data
             lst.time = form.time.data
             lst.notification = form.notification.data
@@ -97,12 +153,14 @@ def add_list():
     return render_template('add_list.html', title='Добавление вишлиста',
                            form=form)
 
+
 @application.route('/list<int:list_id>')
 def lst(list_id):
     db_sess = db_session.create_session()
     lst = db_sess.get(Lists, list_id)
     wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
     return render_template('list.html', lst=lst, wishes=wishes)
+
 
 @application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
 @login_required

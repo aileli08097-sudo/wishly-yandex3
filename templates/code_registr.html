@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Подтверждение почты</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+    <p>На вашу почту был отправлен код подтверждения. Введите его ниже для завершения регистрации.</p>
+    <p>
+        {{ form.code.label }}<br>
+        {{ form.code(class="form-control") }}<br>
+        {% for error in form.code.errors %}
+    <div class="alert alert-danger" role="alert">
+        {{ error }}
+    </div>
+    {% endfor %}
+    </p>
+    <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <div>{{ message }}</div>
+</form>
+{% endblock %}
