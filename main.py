@@ -41,6 +41,14 @@ def index():
     names = {item.id: f'{item.username}' for item in users}
     return render_template('index.html', lists=lists, names=names)
 
+@application.route('/profile')
+@login_required
+def profile():
+    db_sess = db_session.create_session()
+    lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
+    user = db_sess.query(User).filter(User.id == current_user.id).first()
+    return render_template('profile.html', lists=lists, user=user)
+
 
 @application.route('/login', methods=['GET', 'POST'])
 def login():

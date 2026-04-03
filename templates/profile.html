@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="text-center">Ваш профиль</h1>
+<p><b>Имя пользователя:</b> {{ user.username }}</p>
+<p><b>Почта:</b> {{ user.email }}</p>
+<p><b>Вишлисты:</b></p>
+{% if lists %}
+    <div class="table_container">
+          <ol>
+            {% for item in lists %}
+              <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}</a></li>
+            {% endfor %}
+          </ol>
+      <a class="nav-link btn btn-outline-info" style="width: 200px;" href="/registration">Создать новый вишлист</a>
+    </div>
+{% else %}
+<div class="alert alert-danger">
+    <h3>Вишлистов не найдено. Создайте прямо сейчас!</h3>
+    <a class="nav-link btn btn-outline-info" href="/add_list">Создать вишлист</a>
+</div>
+{% endif %}
+{% endblock %}

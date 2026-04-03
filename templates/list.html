@@ -3,7 +3,9 @@
 {% block content %}
 {% if lst %}
     <h2 class="text-center">Вишлист №{{lst.id}}: {{lst.feast}}</h2>
-    <a class="nav-link btn btn-outline-success" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+<div class="d-flex justify-content-center">
+    <a class="nav-link btn btn-outline-warning" style="width: 200px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+</div>
     {% if wishes %}
 
         <div class="table_container">
