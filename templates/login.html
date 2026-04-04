@@ -24,6 +24,8 @@
     </p>
     <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+    <p>Нет аккаунта?</p>
+    <a class="nav-link btn btn-outline-success" style="width: 200px;" href="/registration">Зарегистрируйтесь</a>
     <div>{{ message }}</div>
 </form>
 {% endblock %}

@@ -34,8 +34,14 @@
     </div>
     {% endfor %}
 {% else %}
+{% if aut %}
 <div class="alert alert-danger">
     <h3>Вишлистов не найдено. Создайте свой!</h3>
 </div>
+{% else %}
+<div class="alert alert-danger">
+    <h3>Вишлистов не найдено. Зарегистрируйтесь и создайте свой!</h3>
+</div>
+{% endif %}
 {% endif %}
 {% endblock %}

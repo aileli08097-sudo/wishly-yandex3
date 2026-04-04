@@ -4,9 +4,17 @@
 {% if lst %}
     <h2 class="text-center">Вишлист №{{lst.id}}: {{lst.feast}}</h2>
 {% if not is_shared_view %}
-    <p>Ссылка этого вишлиста: {{ url }}. Поделитесь ею с близкими!</p>
+    <p><b>Ссылка этого вишлиста:</b> {{ url }}. Поделитесь ею с близкими!</p>
     <div class="d-flex justify-content-center">
-        <a class="nav-link btn btn-outline-warning" style="width: 200px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
+    </div>
+{% else %}
+    <div class="d-flex justify-content-center">
+        {% if not is_sub %}
+        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/shared/{{ token }}/subscribe">Подписаться на вишлист</a>
+        {% else %}
+        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/shared/{{ token }}/unsubscribe">Отписаться от вишлиста</a>
+        {% endif %}
     </div>
 {% endif %}
     {% if wishes %}

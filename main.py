@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, session, request, flash, abort, url_for
 from data import lists_api
+from data.listsub import ListSub
 from data.wishes import Wishes
 from forms.code_registr_form import CodeRegistrForm
 from forms.login_form import LoginForm
@@ -36,19 +37,29 @@ def load_user(user_id):
 @application.route('/')
 def index():
     db_sess = db_session.create_session()
-    lists = db_sess.query(Lists).all()
-    users = db_sess.query(User).all()
-    names = {item.id: f'{item.username}' for item in users}
-    return render_template('index.html', lists=lists, names=names)
+    lst = []
+    names = []
+    aut = False
+    if current_user.is_authenticated:
+        sub_lists = db_sess.query(Lists).join(
+            ListSub, Lists.id == ListSub.list_id).filter(ListSub.user_id == current_user.id).all()
+        lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
+        lst = sub_lists + lists
+        users = db_sess.query(User).all()
+        names = {item.id: f'{item.username}' for item in users}
+        aut = True
+    return render_template('index.html', lists=lst, names=names, aut=aut)
 
 
 @application.route('/profile')
 @login_required
 def profile():
     db_sess = db_session.create_session()
+    sub_lists = db_sess.query(Lists).join(
+        ListSub, Lists.id == ListSub.list_id).filter(ListSub.user_id == current_user.id).all()
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
     user = db_sess.query(User).filter(User.id == current_user.id).first()
-    return render_template('profile.html', lists=lists, user=user)
+    return render_template('profile.html', sub_lists=sub_lists, lists=lists, user=user)
 
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -137,12 +148,18 @@ def add_list():
 def lst(list_id):
     db_sess = db_session.create_session()
     lst = db_sess.get(Lists, list_id)
-    if lst.user_id == current_user.id:
+    if db_sess.query(ListSub).filter_by(
+        user_id=current_user.id,
+        list_id=lst.id
+    ).first():
+        return redirect(f'/shared/{lst.token}')
+    elif lst.user_id == current_user.id:
         wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
         url = url_for('shared_lst', token=lst.token, _external=True)
         return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False)
     else:
-        abort(404)
+        flash('Вишлист не найден', 'danger')
+        return redirect('/')
 
 
 @application.route('/shared/<string:token>')
@@ -150,13 +167,70 @@ def shared_lst(token):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
-        abort(404)
-    try:
-        if lst.user_id == current_user.id:
-            return redirect(f'/list{lst.id}')
-    except Exception:
+        flash('Вишлист не найден', 'danger')
+        return redirect('/')
+    if not current_user.is_authenticated or lst.user_id != current_user.id:
+        is_sub = False
+        if current_user.is_authenticated:
+            sub = db_sess.query(ListSub).filter_by(user_id=current_user.id, list_id=lst.id).first()
+            is_sub = sub is not None
         wishes = db_sess.query(Wishes).filter_by(list_id=lst.id).all()
-        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True)
+        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_sub=is_sub, token=token)
+    else:
+        return redirect(f'/list{lst.id}')
+
+
+@application.route('/shared/<string:token>/subscribe', methods=['GET', 'POST'])
+def sub_lst(token):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter(Lists.token == token).first()
+    if not lst:
+        flash('Вишлист не найден', 'danger')
+        return redirect('/')
+    if not current_user.is_authenticated:
+        flash('Сначала войдите в аккаунт!', 'danger')
+        return redirect('/login')
+    exist = db_sess.query(ListSub).filter_by(
+        user_id=current_user.id,
+        list_id=lst.id
+    ).first()
+
+    if not exist:
+        sub = ListSub(
+            user_id=current_user.id,
+            list_id=lst.id
+        )
+        db_sess.add(sub)
+        db_sess.commit()
+        flash('Вы подписались на вишлист!', 'success')
+    else:
+        flash('Вы уже подписаны на этот вишлист', 'info')
+
+    return redirect(f'/shared/{token}')
+
+
+@application.route('/shared/<string:token>/unsubscribe', methods=['GET', 'POST'])
+def unsub_lst(token):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter(Lists.token == token).first()
+    if not lst:
+        flash('Вишлист не найден', 'danger')
+        return redirect('/')
+    if not current_user.is_authenticated:
+        flash('Сначала войдите в аккаунт!', 'danger')
+        return redirect('/login')
+    exist = db_sess.query(ListSub).filter_by(
+        user_id=current_user.id,
+        list_id=lst.id
+    ).first()
+    if exist:
+        sub = db_sess.query(ListSub).filter(ListSub.user_id == current_user.id, ListSub.list_id == lst.id).first()
+        db_sess.delete(sub)
+        db_sess.commit()
+        flash('Вы отписались от вишлиста!', 'info')
+    else:
+        flash('Вы не были подписаны на этот вишлист', 'warning')
+    return redirect(f'/shared/{token}')
 
 
 @application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
@@ -179,7 +253,6 @@ def add_wish(list_id):
                                form=form)
     else:
         abort(404)
-
 
 
 @application.route('/logout')

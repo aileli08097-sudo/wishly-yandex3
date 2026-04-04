@@ -5,7 +5,19 @@
 <p><b>Имя пользователя:</b> {{ user.username }}</p>
 <p><b>Почта:</b> {{ user.email }}</p>
 <p><b>Дата регистрации:</b> {{ user.modified_date.strftime("%d.%m.%Y") }}</p>
-<p><b>Вишлисты:</b></p>
+<p><b>Подписки:</b></p>
+{% if sub_lists %}
+    <div class="table_container">
+          <ol>
+            {% for item in sub_lists %}
+              <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}</a></li>
+            {% endfor %}
+          </ol>
+    </div>
+{% else %}
+<p>Вы еще не подписаны ни на один вишлист!</p>
+{% endif %}
+<p><b>Ваши вишлисты:</b></p>
 {% if lists %}
     <div class="table_container">
           <ol>
@@ -13,7 +25,7 @@
               <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}</a></li>
             {% endfor %}
           </ol>
-      <a class="nav-link btn btn-outline-info" style="width: 200px;" href="/registration">Создать новый вишлист</a>
+      <a class="nav-link btn btn-outline-info" style="width: 300px;" href="/add_list">Создать новый вишлист</a>
     </div>
 {% else %}
 <a class="nav-link btn btn-outline-info" style="width: 200px;" href="/add_list">Создать вишлист</a>
