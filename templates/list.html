@@ -2,23 +2,14 @@
 
 {% block content %}
 {% if lst %}
-    <h2 class="text-center">Вишлист №{{lst.id}}: {{lst.feast}}</h2>
+    <h2 class="text-center">Вишлист "{{lst.feast}}"</h2>
 {% if not is_shared_view %}
-    <p><b>Ссылка этого вишлиста:</b> {{ url }}. Поделитесь ею с близкими!</p>
+    <p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
     <div class="d-flex justify-content-center">
         <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
     </div>
-{% else %}
-    <div class="d-flex justify-content-center">
-        {% if not is_sub %}
-        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/shared/{{ token }}/subscribe">Подписаться на вишлист</a>
-        {% else %}
-        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/shared/{{ token }}/unsubscribe">Отписаться от вишлиста</a>
-        {% endif %}
-    </div>
 {% endif %}
     {% if wishes %}
-
         <div class="table_container">
             <table class="table table-bordered">
                 <thead class="table-primary">
@@ -26,6 +17,7 @@
                         <td class="title" width="400px" bgcolor="#dddddd">Название</td>
                         <td class="title" width="600px" bgcolor="#dddddd">Описание</td>
                         <td class="title" width="400px" bgcolor="#dddddd">Ссылка</td>
+                        <td class="title" width="400px" bgcolor="#dddddd">Бронирование</td>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,6 +36,17 @@
                     {% else %}
                     <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
                     {% endif %}
+                    {% for book in is_book %}
+                        {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
+                            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/<string:token>/<int:wish_id>/unbook">Отказаться от брони</a></td>
+                        {% elif book[1] and book[0].wish_id == item.id %}
+                            <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
+                        {% elif not book[1] and book[0] == item.id and lst.user_id != current_user.id %}
+                            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/book">Забронировать</a></td>
+                        {% elif not book[1] and book[0] == item.id %}
+                            <td class="ordinary" bgcolor="#eeeeff">Не забронировано</td>
+                        {% endif %}
+                    {% endfor %}
                 </tr>
         {% endfor %}
                 </tbody>

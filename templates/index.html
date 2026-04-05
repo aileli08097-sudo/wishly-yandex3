@@ -8,17 +8,15 @@
         <table class="table table-bordered">
             <thead class="table-primary">
             <tr>
-                <td class="title" width="50px" bgcolor="#dddddd">Номер</td>
-                <td class="title" width="400px" bgcolor="#dddddd">Название</td>
-                <td class="title" width="400px" bgcolor="#dddddd">Автор</td>
-                <td class="title" width="150px" bgcolor="#dddddd">Дата</td>
-                <td class="title" width="100px" bgcolor="#dddddd">Время</td>
+                <td class="title" width="350px" bgcolor="#dddddd">Название</td>
+                <td class="title" width="350px" bgcolor="#dddddd">Автор</td>
+                <td class="title" width="200px" bgcolor="#dddddd">Дата</td>
+                <td class="title" width="150px" bgcolor="#dddddd">Время</td>
                 <td class="title" width="100px" bgcolor="#dddddd">Уведомлять ли</td>
             </tr>
             </thead>
             <tbody>
             <tr>
-                <td class="ordinary" bgcolor="#eeeeff">{{ item.id }}</td>
                 <td class="ordinary" bgcolor="#eeeeff"><a  href="/list{{ item.id }}">{{ item.feast.capitalize() }}</a></td>
                 <td class="ordinary" bgcolor="#eeeeff">{{ names[item.user_id] }}</td>
                 <td class="ordinary" bgcolor="#eeeeff">{{ item.date.strftime("%d.%m.%Y") }}</td>
@@ -36,11 +34,11 @@
 {% else %}
 {% if aut %}
 <div class="alert alert-danger">
-    <h3>Вишлистов не найдено. Создайте свой!</h3>
+    <h5>Вишлистов не найдено. Создайте свой!</h5>
 </div>
 {% else %}
 <div class="alert alert-danger">
-    <h3>Вишлистов не найдено. Зарегистрируйтесь и создайте свой!</h3>
+    <h5>Вишлистов не найдено. Зарегистрируйтесь и создайте свой!</h5>
 </div>
 {% endif %}
 {% endif %}

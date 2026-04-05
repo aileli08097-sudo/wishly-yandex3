@@ -1,6 +1,6 @@
 from flask import Flask, render_template, redirect, session, request, flash, abort, url_for
 from data import lists_api
-from data.listsub import ListSub
+from data.wishbook import WishBook
 from data.wishes import Wishes
 from forms.code_registr_form import CodeRegistrForm
 from forms.login_form import LoginForm
@@ -41,10 +41,12 @@ def index():
     names = []
     aut = False
     if current_user.is_authenticated:
-        sub_lists = db_sess.query(Lists).join(
-            ListSub, Lists.id == ListSub.list_id).filter(ListSub.user_id == current_user.id).all()
+        sub_lists = set()
+        for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
+            sub_lists.add(db_sess.query(Lists).join(
+                Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
         lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
-        lst = sub_lists + lists
+        lst = list(sub_lists) + lists
         users = db_sess.query(User).all()
         names = {item.id: f'{item.username}' for item in users}
         aut = True
@@ -55,11 +57,13 @@ def index():
 @login_required
 def profile():
     db_sess = db_session.create_session()
-    sub_lists = db_sess.query(Lists).join(
-        ListSub, Lists.id == ListSub.list_id).filter(ListSub.user_id == current_user.id).all()
+    sub_lists = set()
+    for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
+        sub_lists.add(db_sess.query(Lists).join(
+            Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
     user = db_sess.query(User).filter(User.id == current_user.id).first()
-    return render_template('profile.html', sub_lists=sub_lists, lists=lists, user=user)
+    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user)
 
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -148,15 +152,23 @@ def add_list():
 def lst(list_id):
     db_sess = db_session.create_session()
     lst = db_sess.get(Lists, list_id)
-    if db_sess.query(ListSub).filter_by(
-        user_id=current_user.id,
-        list_id=lst.id
-    ).first():
-        return redirect(f'/shared/{lst.token}')
-    elif lst.user_id == current_user.id:
+    for wish in db_sess.query(Wishes).filter(Wishes.list_id == lst.id):
+        if db_sess.query(WishBook).filter_by(
+            user_id=current_user.id,
+            wish_id=wish.id
+        ).first():
+            return redirect(f'/shared/{lst.token}')
+    if lst.user_id == current_user.id:
         wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
+        is_book = []
+        for wish in wishes:
+            book = db_sess.query(WishBook).filter_by(wish_id=wish.id).first()
+            if book:
+                is_book.append((book, True))
+            else:
+                is_book.append((wish.id, False))
         url = url_for('shared_lst', token=lst.token, _external=True)
-        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False)
+        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book)
     else:
         flash('Вишлист не найден', 'danger')
         return redirect('/')
@@ -170,66 +182,77 @@ def shared_lst(token):
         flash('Вишлист не найден', 'danger')
         return redirect('/')
     if not current_user.is_authenticated or lst.user_id != current_user.id:
-        is_sub = False
-        if current_user.is_authenticated:
-            sub = db_sess.query(ListSub).filter_by(user_id=current_user.id, list_id=lst.id).first()
-            is_sub = sub is not None
+        is_book = []
         wishes = db_sess.query(Wishes).filter_by(list_id=lst.id).all()
-        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_sub=is_sub, token=token)
+        for wish in wishes:
+            book = db_sess.query(WishBook).filter_by(wish_id=wish.id).first()
+            if book:
+                is_book.append((book, True))
+            else:
+                is_book.append((wish.id, False))
+        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token)
     else:
         return redirect(f'/list{lst.id}')
 
 
-@application.route('/shared/<string:token>/subscribe', methods=['GET', 'POST'])
-def sub_lst(token):
+@application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])
+def book_lst(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
         return redirect('/')
+    wish = db_sess.query(Wishes).filter(Wishes.id == wish_id, Wishes.list_id == lst.id).first()
+    if not wish:
+        flash('Желание не найдено', 'danger')
+        return redirect(f'/shared/{token}')
     if not current_user.is_authenticated:
         flash('Сначала войдите в аккаунт!', 'danger')
         return redirect('/login')
-    exist = db_sess.query(ListSub).filter_by(
+    exist = db_sess.query(WishBook).filter_by(
         user_id=current_user.id,
-        list_id=lst.id
+        wish_id=wish.id
     ).first()
 
     if not exist:
-        sub = ListSub(
+        sub = WishBook(
             user_id=current_user.id,
-            list_id=lst.id
+            wish_id=wish.id
         )
         db_sess.add(sub)
         db_sess.commit()
-        flash('Вы подписались на вишлист!', 'success')
+        flash('Вы забронировали это желание!', 'success')
     else:
-        flash('Вы уже подписаны на этот вишлист', 'info')
+        flash('Вы уже забронировали это желание', 'info')
 
     return redirect(f'/shared/{token}')
 
 
-@application.route('/shared/<string:token>/unsubscribe', methods=['GET', 'POST'])
-def unsub_lst(token):
+@application.route('/shared/<string:token>/<int:wish_id>/unbook', methods=['GET', 'POST'])
+def unbook_lst(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
         return redirect('/')
+    wish = db_sess.query(Wishes).filter(Wishes.id == wish_id, Wishes.list_id == lst.id).first()
+    if not wish:
+        flash('Желание не найдено', 'danger')
+        return redirect(f'/shared/{token}')
     if not current_user.is_authenticated:
         flash('Сначала войдите в аккаунт!', 'danger')
         return redirect('/login')
-    exist = db_sess.query(ListSub).filter_by(
+    exist = db_sess.query(WishBook).filter_by(
         user_id=current_user.id,
-        list_id=lst.id
+        wish_id=wish.id
     ).first()
     if exist:
-        sub = db_sess.query(ListSub).filter(ListSub.user_id == current_user.id, ListSub.list_id == lst.id).first()
+        sub = db_sess.query(WishBook).filter(WishBook.user_id == current_user.id, WishBook.wish_id == wish.id).first()
         db_sess.delete(sub)
         db_sess.commit()
-        flash('Вы отписались от вишлиста!', 'info')
+        flash('Вы отказались от бронирования этого желания!', 'info')
     else:
-        flash('Вы не были подписаны на этот вишлист', 'warning')
+        flash('Вы не бронировали это желание', 'warning')
     return redirect(f'/shared/{token}')
 
 

@@ -5,7 +5,7 @@
 <p><b>Имя пользователя:</b> {{ user.username }}</p>
 <p><b>Почта:</b> {{ user.email }}</p>
 <p><b>Дата регистрации:</b> {{ user.modified_date.strftime("%d.%m.%Y") }}</p>
-<p><b>Подписки:</b></p>
+<p><b>Брони:</b></p>
 {% if sub_lists %}
     <div class="table_container">
           <ol>
@@ -15,7 +15,7 @@
           </ol>
     </div>
 {% else %}
-<p>Вы еще не подписаны ни на один вишлист!</p>
+<p>Вы еще не забронировали ни одно желание!</p>
 {% endif %}
 <p><b>Ваши вишлисты:</b></p>
 {% if lists %}

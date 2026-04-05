@@ -1,7 +1,7 @@
 import flask
 from flask import jsonify, make_response, request
 from . import db_session
-from .listsub import ListSub
+from .wishbook import ListSub
 
 blueprint = flask.Blueprint(
     'listsub_api',
