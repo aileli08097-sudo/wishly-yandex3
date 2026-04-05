@@ -43,7 +43,8 @@ def index():
     if current_user.is_authenticated:
         sub_lists = set()
         for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
-            sub_lists.add(db_sess.query(Lists).join(
+            if book is not None:
+                sub_lists.add(db_sess.query(Lists).join(
                 Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
         lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
         lst = list(sub_lists) + lists
@@ -59,7 +60,8 @@ def profile():
     db_sess = db_session.create_session()
     sub_lists = set()
     for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
-        sub_lists.add(db_sess.query(Lists).join(
+        if book is not None:
+            sub_lists.add(db_sess.query(Lists).join(
             Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
     user = db_sess.query(User).filter(User.id == current_user.id).first()
@@ -74,7 +76,7 @@ def login():
         user = db_sess.query(User).filter(User.username == form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-            return redirect("/")
+            return redirect('/')
         return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form)
@@ -104,7 +106,7 @@ def registration():
                     db_sess.add(user)
                     db_sess.commit()
                     login_user(user, remember=form.remember_me.data)
-                    return redirect("/")
+                    return redirect('/')
                 return render_template('registr.html',
                                        message="Пароли не совпадают",
                                        form=form)
@@ -154,8 +156,8 @@ def lst(list_id):
     lst = db_sess.get(Lists, list_id)
     for wish in db_sess.query(Wishes).filter(Wishes.list_id == lst.id):
         if db_sess.query(WishBook).filter_by(
-            user_id=current_user.id,
-            wish_id=wish.id
+                user_id=current_user.id,
+                wish_id=wish.id
         ).first():
             return redirect(f'/shared/{lst.token}')
     if lst.user_id == current_user.id:
@@ -171,7 +173,7 @@ def lst(list_id):
         return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book)
     else:
         flash('Вишлист не найден', 'danger')
-        return redirect('/')
+        return redirect(request.referrer or '/')
 
 
 @application.route('/shared/<string:token>')
@@ -180,7 +182,7 @@ def shared_lst(token):
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
-        return redirect('/')
+        return redirect(request.referrer or '/')
     if not current_user.is_authenticated or lst.user_id != current_user.id:
         is_book = []
         wishes = db_sess.query(Wishes).filter_by(list_id=lst.id).all()
@@ -195,17 +197,39 @@ def shared_lst(token):
         return redirect(f'/list{lst.id}')
 
 
+@application.route('/shared/<string:token>/<int:wish_id>/delete', methods=['POST'])
+@login_required
+def delete_wish(token, wish_id):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter(Lists.token == token).first()
+    if not lst:
+        flash('Вишлист не найден', 'danger')
+        return redirect(request.referrer or '/')
+    wish = db_sess.get(Wishes, wish_id)
+    if not wish or lst.id != wish.list_id:
+        flash('Желание не найдено', 'danger')
+        return redirect(request.referrer or f'/shared/{token}')
+    if lst.user_id != current_user.id:
+        flash('Вы не можете удалить это желание', 'danger')
+        return redirect(request.referrer or f'/shared/{token}')
+    db_sess.delete(wish)
+    db_sess.commit()
+
+    flash(f'Желание успешно удалено!', 'success')
+    return redirect(request.referrer or f'/shared/{token}')
+
+
 @application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])
 def book_lst(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
-        return redirect('/')
+        return redirect(request.referrer or '/')
     wish = db_sess.query(Wishes).filter(Wishes.id == wish_id, Wishes.list_id == lst.id).first()
     if not wish:
         flash('Желание не найдено', 'danger')
-        return redirect(f'/shared/{token}')
+        return redirect(request.referrer or f'/shared/{token}')
     if not current_user.is_authenticated:
         flash('Сначала войдите в аккаунт!', 'danger')
         return redirect('/login')
@@ -234,11 +258,11 @@ def unbook_lst(token, wish_id):
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
-        return redirect('/')
+        return redirect(request.referrer or '/')
     wish = db_sess.query(Wishes).filter(Wishes.id == wish_id, Wishes.list_id == lst.id).first()
     if not wish:
         flash('Желание не найдено', 'danger')
-        return redirect(f'/shared/{token}')
+        return redirect(request.referrer or f'/shared/{token}')
     if not current_user.is_authenticated:
         flash('Сначала войдите в аккаунт!', 'danger')
         return redirect('/login')
@@ -275,7 +299,7 @@ def add_wish(list_id):
         return render_template('add_wish.html', title='Добавление желания',
                                form=form)
     else:
-        abort(404)
+        return redirect(request.referrer or '/')
 
 
 @application.route('/logout')

@@ -4,32 +4,34 @@
 <h1 class="text-center">Ваши вишлисты</h1>
 {% if lists %}
     {% for item in lists %}
-    <div class="table_container">
-        <table class="table table-bordered">
-            <thead class="table-primary">
-            <tr>
-                <td class="title" width="350px" bgcolor="#dddddd">Название</td>
-                <td class="title" width="350px" bgcolor="#dddddd">Автор</td>
-                <td class="title" width="200px" bgcolor="#dddddd">Дата</td>
-                <td class="title" width="150px" bgcolor="#dddddd">Время</td>
-                <td class="title" width="100px" bgcolor="#dddddd">Уведомлять ли</td>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <td class="ordinary" bgcolor="#eeeeff"><a  href="/list{{ item.id }}">{{ item.feast.capitalize() }}</a></td>
-                <td class="ordinary" bgcolor="#eeeeff">{{ names[item.user_id] }}</td>
-                <td class="ordinary" bgcolor="#eeeeff">{{ item.date.strftime("%d.%m.%Y") }}</td>
-                <td class="ordinary" bgcolor="#eeeeff">{{ item.time.strftime('%H:%M') }}</td>
-                {% if item.notification %}
-                <td class="ordinary" bgcolor="#eeffee">Да</td>
-                {% else %}
-                <td class="ordinary" bgcolor="#ffeeff">Нет</td>
-                {% endif %}
-            </tr>
-            </tbody>
-        </table>
-    </div>
+    {% if item %}
+        <div class="table_container">
+            <table class="table table-bordered">
+                <thead class="table-primary">
+                <tr>
+                    <td class="title" width="350px" bgcolor="#dddddd">Название</td>
+                    <td class="title" width="350px" bgcolor="#dddddd">Автор</td>
+                    <td class="title" width="200px" bgcolor="#dddddd">Дата</td>
+                    <td class="title" width="150px" bgcolor="#dddddd">Время</td>
+                    <td class="title" width="100px" bgcolor="#dddddd">Уведомлять ли</td>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="ordinary" bgcolor="#eeeeff"><a  href="/list{{ item.id }}">{{ item.feast.capitalize() }}</a></td>
+                    <td class="ordinary" bgcolor="#eeeeff">{{ names[item.user_id] }}</td>
+                    <td class="ordinary" bgcolor="#eeeeff">{{ item.date.strftime("%d.%m.%Y") }}</td>
+                    <td class="ordinary" bgcolor="#eeeeff">{{ item.time.strftime('%H:%M') }}</td>
+                    {% if item.notification %}
+                    <td class="ordinary" bgcolor="#eeffee">Да</td>
+                    {% else %}
+                    <td class="ordinary" bgcolor="#ffeeff">Нет</td>
+                    {% endif %}
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
     {% endfor %}
 {% else %}
 {% if aut %}

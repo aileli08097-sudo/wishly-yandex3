@@ -2,65 +2,76 @@
 
 {% block content %}
 {% if lst %}
-    <h2 class="text-center">Вишлист "{{lst.feast}}"</h2>
+<h2 class="text-center">Вишлист "{{lst.feast}}"</h2>
 {% if not is_shared_view %}
-    <p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
-    <div class="d-flex justify-content-center">
-        <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить желание</a>
-    </div>
+<p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
+<div class="d-flex justify-content-center">
+    <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить
+        желание</a>
+</div>
 {% endif %}
-    {% if wishes %}
-        <div class="table_container">
-            <table class="table table-bordered">
-                <thead class="table-primary">
-                    <tr>
-                        <td class="title" width="400px" bgcolor="#dddddd">Название</td>
-                        <td class="title" width="600px" bgcolor="#dddddd">Описание</td>
-                        <td class="title" width="400px" bgcolor="#dddddd">Ссылка</td>
-                        <td class="title" width="400px" bgcolor="#dddddd">Бронирование</td>
-                    </tr>
-                </thead>
-                <tbody>
+{% if wishes %}
+<div class="table_container">
+    <table class="table table-bordered">
+        <thead class="table-primary">
+        <tr>
+            <td class="title" width="400px" bgcolor="#dddddd">Название</td>
+            <td class="title" width="600px" bgcolor="#dddddd">Описание</td>
+            <td class="title" width="400px" bgcolor="#dddddd">Ссылка</td>
+            <td class="title" width="400px" bgcolor="#dddddd">Бронирование</td>
+        </tr>
+        </thead>
+        <tbody>
         {% for item in wishes %}
-                <tr>
-                    <td class="ordinary" bgcolor="#eeeeff">{{ item.name.capitalize() }}</td>
-                    {% if item.bio %}
-                    <td class="ordinary" bgcolor="#eeeeff">{{ item.bio }}</td>
-                    {% else %}
-                    <td class="ordinary" bgcolor="#eeeeff">Без описания</td>
-                    {% endif %}
-                    {% if item.url %}
-                    <td class="ordinary" bgcolor="#eeeeff">
-                        <a href="{{ item.url }}" target="_blank">Ссылка</a>
-                    </td>
-                    {% else %}
-                    <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
-                    {% endif %}
-                    {% for book in is_book %}
-                        {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
-                            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/<string:token>/<int:wish_id>/unbook">Отказаться от брони</a></td>
-                        {% elif book[1] and book[0].wish_id == item.id %}
-                            <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
-                        {% elif not book[1] and book[0] == item.id and lst.user_id != current_user.id %}
-                            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/book">Забронировать</a></td>
-                        {% elif not book[1] and book[0] == item.id %}
-                            <td class="ordinary" bgcolor="#eeeeff">Не забронировано</td>
-                        {% endif %}
-                    {% endfor %}
-                </tr>
-        {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    {% else %}
-        <div class="alert alert-info">
+        <tr>
             {% if not is_shared_view %}
-            В этом вишлисте пока нет желаний. Добавьте первое!
+            <td class="ordinary" bgcolor="#eeeeff"><a href="javascript:void(0)" class="delete-wish-link"
+                                                      data-wish-id="{{ item.id }}"
+                                                      data-list-token="{{ lst.token }}"
+                                                      data-wish-name="{{ item.name }}">{{
+                item.name.capitalize() }}</a></td>
             {% else %}
-            В этом вишлисте пока нет желаний.
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.name.capitalize() }}</td>
             {% endif %}
-        </div>
+            {% if item.bio %}
+            <td class="ordinary" bgcolor="#eeeeff">{{ item.bio }}</td>
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Без описания</td>
+            {% endif %}
+            {% if item.url %}
+            <td class="ordinary" bgcolor="#eeeeff">
+                <a href="{{ item.url }}" target="_blank">Ссылка</a>
+            </td>
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
+            {% endif %}
+            {% for book in is_book %}
+            {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
+            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/<string:token>/<int:wish_id>/unbook">Отказаться от
+                брони</a></td>
+            {% elif book[1] and book[0].wish_id == item.id %}
+            <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
+            {% elif not book[1] and book[0] == item.id and lst.user_id != current_user.id %}
+            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/book">Забронировать</a>
+            </td>
+            {% elif not book[1] and book[0] == item.id %}
+            <td class="ordinary" bgcolor="#eeeeff">Не забронировано</td>
+            {% endif %}
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    {% if not is_shared_view %}
+    В этом вишлисте пока нет желаний. Добавьте первое!
+    {% else %}
+    В этом вишлисте пока нет желаний.
     {% endif %}
+</div>
+{% endif %}
 {% else %}
 <div class="alert alert-danger">
     <h3>Список не найден</h3>
@@ -69,4 +80,24 @@
     </a>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.delete-wish-link').forEach(link => {
+link.addEventListener('click', function(e) {
+e.preventDefault();
+const wishId = this.dataset.wishId;
+const wishName = this.dataset.wishName;
+const listToken = this.dataset.listToken;
+if (confirm(`Вы уверены, что хотите удалить желание "${wishName}"?`)) {
+const form = document.createElement('form');
+form.method = 'POST';
+form.action = `/shared/${listToken}/${wishId}/delete`;
+document.body.appendChild(form);
+form.submit();
+}
+});
+});
+</script>
 {% endblock %}

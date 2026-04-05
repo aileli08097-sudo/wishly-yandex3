@@ -22,7 +22,9 @@
     <div class="table_container">
           <ol>
             {% for item in lists %}
+              {% if item %}
               <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}</a></li>
+              {% endif %}
             {% endfor %}
           </ol>
       <a class="nav-link btn btn-outline-info" style="width: 300px;" href="/add_list">Создать новый вишлист</a>
