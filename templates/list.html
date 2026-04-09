@@ -7,8 +7,12 @@
 <p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
 <div class="d-flex justify-content-center">
     <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить
-        желание</a>
+        желание</a><a class="nav-link btn btn-outline-danger delete-wishlist-btn" style="width: 300px;"
+            data-wishlist-id="{{ lst.id }}"
+            data-wishlist-name="{{ lst.feast }}">Удалить вишлист</a>
 </div>
+{% else %}
+<h5 class="text-center">Автор: {{autor.username}}</h5>
 {% endif %}
 {% if wishes %}
 <div class="table_container">
@@ -27,7 +31,7 @@
             {% if not is_shared_view %}
             <td class="ordinary" bgcolor="#eeeeff"><a href="javascript:void(0)" class="delete-wish-link"
                                                       data-wish-id="{{ item.id }}"
-                                                      data-list-token="{{ lst.token }}"
+                                                      data-list-id="{{ lst.id }}"
                                                       data-wish-name="{{ item.name }}">{{
                 item.name.capitalize() }}</a></td>
             {% else %}
@@ -47,7 +51,7 @@
             {% endif %}
             {% for book in is_book %}
             {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
-            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/<string:token>/<int:wish_id>/unbook">Отказаться от
+            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/unbook">Отказаться от
                 брони</a></td>
             {% elif book[1] and book[0].wish_id == item.id %}
             <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
@@ -89,15 +93,31 @@ link.addEventListener('click', function(e) {
 e.preventDefault();
 const wishId = this.dataset.wishId;
 const wishName = this.dataset.wishName;
-const listToken = this.dataset.listToken;
+const listId = this.dataset.listId;
 if (confirm(`Вы уверены, что хотите удалить желание "${wishName}"?`)) {
 const form = document.createElement('form');
 form.method = 'POST';
-form.action = `/shared/${listToken}/${wishId}/delete`;
+form.action = `/list${listId}/${wishId}/delete`;
 document.body.appendChild(form);
 form.submit();
 }
 });
 });
+
+const deleteWishlistBtn = document.querySelector('.delete-wishlist-btn');
+if (deleteWishlistBtn) {
+deleteWishlistBtn.addEventListener('click', function(e) {
+e.preventDefault();
+const wishlistId = this.dataset.wishlistId;
+const wishlistName = this.dataset.wishlistName;
+if (confirm(`Вы уверены, что хотите удалить вишлист "${wishlistName}"?`)) {
+const form = document.createElement('form');
+form.method = 'POST';
+form.action = `/list${wishlistId}/delete`;
+document.body.appendChild(form);
+form.submit();
+}
+});
+}
 </script>
 {% endblock %}

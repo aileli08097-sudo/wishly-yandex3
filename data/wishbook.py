@@ -5,7 +5,7 @@ from .db_session import SqlAlchemyBase
 
 
 class WishBook(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'listsub'
+    __tablename__ = 'wishbook'
 
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)

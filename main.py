@@ -2,7 +2,6 @@ from flask import Flask, render_template, redirect, session, request, flash, abo
 from data import lists_api
 from data.wishbook import WishBook
 from data.wishes import Wishes
-from forms.code_registr_form import CodeRegistrForm
 from forms.login_form import LoginForm
 from data.lists import Lists
 from data.users_resource import *
@@ -45,7 +44,7 @@ def index():
         for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
             if book is not None:
                 sub_lists.add(db_sess.query(Lists).join(
-                Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
+                    Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
         lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
         lst = list(sub_lists) + lists
         users = db_sess.query(User).all()
@@ -62,7 +61,7 @@ def profile():
     for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
         if book is not None:
             sub_lists.add(db_sess.query(Lists).join(
-            Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
+                Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
     user = db_sess.query(User).filter(User.id == current_user.id).first()
     return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user)
@@ -192,31 +191,58 @@ def shared_lst(token):
                 is_book.append((book, True))
             else:
                 is_book.append((wish.id, False))
-        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token)
+        autor = db_sess.query(User).join(Lists, Lists.user_id == User.id).filter(Lists.id == lst.id).first()
+        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token, autor=autor)
     else:
         return redirect(f'/list{lst.id}')
 
-
-@application.route('/shared/<string:token>/<int:wish_id>/delete', methods=['POST'])
+@application.route('/list<int:list_id>/delete', methods=['POST'])
 @login_required
-def delete_wish(token, wish_id):
+def delete_list(list_id):
     db_sess = db_session.create_session()
-    lst = db_sess.query(Lists).filter(Lists.token == token).first()
+    lst = db_sess.query(Lists).filter(Lists.id == list_id).first()
+    if not lst:
+        flash('Вишлист не найден', 'danger')
+        return redirect(request.referrer or '/')
+    if lst.user_id != current_user.id:
+        flash('Вы не можете удалить этот вишлист', 'danger')
+        return redirect(request.referrer or '/')
+    wish = db_sess.query(Wishes).filter(Wishes.list_id == list_id).all()
+    for w in wish:
+        wishbooks = db_sess.query(WishBook).filter(WishBook.wish_id == w.id).all()
+        for book in wishbooks:
+            db_sess.delete(book)
+        db_sess.delete(w)
+    db_sess.delete(lst)
+    db_sess.commit()
+
+    flash(f'Вишлист успешно удалён!', 'success')
+    return redirect('/')
+
+
+@application.route('/list<list_id>/<int:wish_id>/delete', methods=['POST'])
+@login_required
+def delete_wish(list_id, wish_id):
+    db_sess = db_session.create_session()
+    lst = db_sess.query(Lists).filter(Lists.id == list_id).first()
     if not lst:
         flash('Вишлист не найден', 'danger')
         return redirect(request.referrer or '/')
     wish = db_sess.get(Wishes, wish_id)
     if not wish or lst.id != wish.list_id:
         flash('Желание не найдено', 'danger')
-        return redirect(request.referrer or f'/shared/{token}')
+        return redirect(request.referrer or f'/list{list_id}')
     if lst.user_id != current_user.id:
         flash('Вы не можете удалить это желание', 'danger')
-        return redirect(request.referrer or f'/shared/{token}')
+        return redirect(request.referrer or f'/list{list_id}')
+    wishbooks = db_sess.query(WishBook).filter(WishBook.wish_id == wish_id).all()
+    for book in wishbooks:
+        db_sess.delete(book)
     db_sess.delete(wish)
     db_sess.commit()
 
     flash(f'Желание успешно удалено!', 'success')
-    return redirect(request.referrer or f'/shared/{token}')
+    return redirect(request.referrer or f'/list{list_id}')
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])

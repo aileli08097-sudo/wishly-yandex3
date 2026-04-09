@@ -1,55 +1,55 @@
 import flask
 from flask import jsonify, make_response, request
 from . import db_session
-from .wishbook import ListSub
+from .wishbook import WishBook
 
 blueprint = flask.Blueprint(
-    'listsub_api',
+    'wishbook_api',
     __name__,
     template_folder='templates'
 )
 
 
-@blueprint.route('/api/listsub', methods=['GET'])
-def get_listsub():
+@blueprint.route('/api/wishbook', methods=['GET'])
+def get_wishbook():
     db_sess = db_session.create_session()
-    listsub = db_sess.query(ListSub).all()
+    wishbook = db_sess.query(WishBook).all()
     return jsonify(
         {
-            'listsub':
+            'wishbook':
                 [item.to_dict(only=(
-                    'id', 'user_id', 'list_id'))
-                    for item in listsub]
+                    'id', 'user_id', 'wish_id'))
+                    for item in wishbook]
         }
     )
 
 
-@blueprint.route('/api/listsub/<int:listsub_id>', methods=['GET'])
-def get_one_listsub(listsub_id):
+@blueprint.route('/api/wishbook/<int:wishbook_id>', methods=['GET'])
+def get_one_wishbook(wishbook_id):
     db_sess = db_session.create_session()
-    listsub = db_sess.get(ListSub, listsub_id)
-    if not listsub:
+    wishbook = db_sess.get(WishBook, wishbook_id)
+    if not wishbook:
         return make_response(jsonify({'error': 'Not found'}), 404)
     return jsonify(
         {
-            'wish': listsub.to_dict(only=(
-                'id', 'user_id', 'list_id'))
+            'wish': wishbook.to_dict(only=(
+                'id', 'user_id', 'wish_id'))
         }
     )
 
 
-@blueprint.route('/api/listsub', methods=['POST'])
-def create_listsub():
+@blueprint.route('/api/wishbook', methods=['POST'])
+def create_wishbook():
     if not request.json:
         return make_response(jsonify({'error': 'Empty request'}), 400)
     elif not all(key in request.json for key in
-                 ['user_id', 'list_id']):
+                 ['user_id', 'wish_id']):
         return make_response(jsonify({'error': 'Bad request'}), 400)
     db_sess = db_session.create_session()
-    listsub = ListSub(
+    wishbook = WishBook(
         user_id=request.json['user_id'],
-        list_id=request.json['list_id']
+        wish_id=request.json['wish_id']
     )
-    db_sess.add(listsub)
+    db_sess.add(wishbook)
     db_sess.commit()
-    return jsonify({'id': listsub.id})
+    return jsonify({'id': wishbook.id})
