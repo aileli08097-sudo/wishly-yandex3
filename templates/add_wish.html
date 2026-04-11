@@ -2,7 +2,7 @@
 
 {% block content %}
 <h1>Добавление желания</h1>
-<form action="" method="post">
+<form action="" method="post" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
     <p>
         {{ form.name.label }}<br>
@@ -26,6 +26,15 @@
         {{ form.url.label }}<br>
         {{ form.url(class="form-control") }}<br>
         {% for error in form.url.errors %}
+    <p content="alert alert-danger" role="alert">
+        {{ error }}
+    </p>
+    {% endfor %}
+    </p>
+    <p>
+        {{ form.img.label }}<br>
+        {{ form.img(class="form-control") }}<br>
+        {% for error in form.img.errors %}
     <p content="alert alert-danger" role="alert">
         {{ error }}
     </p>

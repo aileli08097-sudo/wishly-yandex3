@@ -13,6 +13,7 @@ class Wishes(SqlAlchemyBase, SerializerMixin):
     bio = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     list_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('lists.id'))
+    img_fn = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     lists = orm.relationship('Lists')
 
     def __repr__(self):

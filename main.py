@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, session, request, flash, abort, url_for
+from flask import Flask, render_template, redirect, session, request, flash, abort, url_for, send_from_directory
 from data import lists_api
 from data.wishbook import WishBook
 from data.wishes import Wishes
@@ -15,11 +15,17 @@ from email_validator import validate_email
 from datetime import *
 import os
 from flask_mail import Mail
+from werkzeug.utils import secure_filename
 
 load_dotenv()
 
 application = Flask(__name__)
 application.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+application.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
+application.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH'))
+application.config['ALLOWED_EXTENSIONS'] = set(os.getenv('ALLOWED_EXTENSIONS').split(','))
+os.makedirs(application.config['UPLOAD_FOLDER'], exist_ok=True)
 
 login_manager = LoginManager()
 login_manager.init_app(application)
@@ -192,9 +198,11 @@ def shared_lst(token):
             else:
                 is_book.append((wish.id, False))
         autor = db_sess.query(User).join(Lists, Lists.user_id == User.id).filter(Lists.id == lst.id).first()
-        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token, autor=autor)
+        return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token,
+                               autor=autor)
     else:
         return redirect(f'/list{lst.id}')
+
 
 @application.route('/list<int:list_id>/delete', methods=['POST'])
 @login_required
@@ -238,6 +246,10 @@ def delete_wish(list_id, wish_id):
     wishbooks = db_sess.query(WishBook).filter(WishBook.wish_id == wish_id).all()
     for book in wishbooks:
         db_sess.delete(book)
+    if wish.img_fn:
+        file_path = os.path.join(application.config['UPLOAD_FOLDER'], wish.img_fn)
+        if os.path.exists(file_path):
+            os.remove(file_path)
     db_sess.delete(wish)
     db_sess.commit()
 
@@ -314,11 +326,21 @@ def add_wish(list_id):
     if lst.user_id == current_user.id:
         form = WishForm()
         if form.validate_on_submit():
+            filename = None
+            if form.img.data:
+                file = form.img.data
+                filename = secure_filename(file.filename)
+                import uuid
+                unique_fn = f"{uuid.uuid4().hex}_{filename}"
+                file_path = os.path.join(application.config['UPLOAD_FOLDER'], unique_fn)
+                file.save(file_path)
+                filename = unique_fn
             wish = Wishes()
             wish.name = form.name.data
             wish.bio = form.bio.data
             wish.url = form.url.data
             wish.list_id = list_id
+            wish.img_fn = filename
             db_sess.add(wish)
             db_sess.commit()
             return redirect(f'/list{list_id}')
@@ -326,6 +348,11 @@ def add_wish(list_id):
                                form=form)
     else:
         return redirect(request.referrer or '/')
+
+
+@application.route('/uploads/<path:filename>')
+def uploaded_file(filename):
+    return send_from_directory(application.config['UPLOAD_FOLDER'], filename)
 
 
 @application.route('/logout')

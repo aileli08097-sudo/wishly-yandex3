@@ -22,6 +22,7 @@
             <td class="title" width="400px" bgcolor="#dddddd">Название</td>
             <td class="title" width="600px" bgcolor="#dddddd">Описание</td>
             <td class="title" width="400px" bgcolor="#dddddd">Ссылка</td>
+            <td class="title" width="400px" bgcolor="#dddddd">Изображение</td>
             <td class="title" width="400px" bgcolor="#dddddd">Бронирование</td>
         </tr>
         </thead>
@@ -48,6 +49,15 @@
             </td>
             {% else %}
             <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
+            {% endif %}
+            {% if item.img_fn %}
+            <td class="ordinary" bgcolor="#eeeeff">
+                <img src="/uploads/{{ item.img_fn }}"
+                     alt="{{ item.name }}"
+                     style="max-width: 400px; max-height: 200px;">
+            </td>
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Без изображения</td>
             {% endif %}
             {% for book in is_book %}
             {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
