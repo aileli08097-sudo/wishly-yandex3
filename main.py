@@ -94,6 +94,9 @@ def login():
         user = db_sess.query(User).filter(User.username == form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
+            next = request.args.get('next')
+            if next and next.startswith('/'):
+                return redirect(next)
             return redirect('/')
         return render_template('login.html',
                                message="Неправильный логин или пароль",
@@ -124,6 +127,9 @@ def registration():
                     db_sess.add(user)
                     db_sess.commit()
                     login_user(user, remember=form.remember_me.data)
+                    next_page = request.args.get('next')
+                    if next_page and next_page.startswith('/'):
+                        return redirect(next_page)
                     return redirect('/')
                 return render_template('registr.html',
                                        message="Пароли не совпадают",
@@ -271,7 +277,8 @@ def delete_wish(list_id, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])
-def book_lst(token, wish_id):
+@login_required
+def book_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
@@ -304,7 +311,8 @@ def book_lst(token, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/unbook', methods=['GET', 'POST'])
-def unbook_lst(token, wish_id):
+@login_required
+def unbook_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
     if not lst:
