@@ -34,6 +34,7 @@ os.makedirs(application.config['UPLOAD_FOLDER'], exist_ok=True)
 
 login_manager = LoginManager()
 login_manager.init_app(application)
+login_manager.login_view = 'login'
 
 api = Api(application)
 
@@ -278,6 +279,7 @@ def delete_wish(list_id, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])
+@login_required
 def book_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
@@ -311,6 +313,7 @@ def book_wish(token, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/unbook', methods=['GET', 'POST'])
+@login_required
 def unbook_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
