@@ -22,6 +22,11 @@ load_dotenv()
 application = Flask(__name__)
 application.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+if os.environ.get('DATABASE_URL'):
+    db_session.global_init(None)
+else:
+    db_session.global_init("db/wishly.db")
+
 application.config['UPLOAD_FOLDER'] = os.getenv('UPLOAD_FOLDER')
 application.config['MAX_CONTENT_LENGTH'] = int(os.getenv('MAX_CONTENT_LENGTH'))
 application.config['ALLOWED_EXTENSIONS'] = set(os.getenv('ALLOWED_EXTENSIONS').split(','))
@@ -376,7 +381,7 @@ def main():
     application.register_blueprint(lists_api.blueprint)
     api.add_resource(UserListResource, '/api/v2/users')
     api.add_resource(UserResource, '/api/v2/users/<int:user_id>')
-    application.run(debug=True)
+    application.run()
 
 
 if __name__ == '__main__':

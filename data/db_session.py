@@ -1,6 +1,7 @@
 import sqlalchemy as sa
 import sqlalchemy.orm as orm
 from sqlalchemy.orm import Session
+import os
 
 SqlAlchemyBase = orm.declarative_base()
 
@@ -13,13 +14,16 @@ def global_init(db_file):
     if __factory:
         return
 
-    if not db_file or not db_file.strip():
-        raise Exception("Необходимо указать файл базы данных.")
+    database_url = os.environ.get('DATABASE_URL')
 
-    conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
-    print(f"Подключение к базе данных по адресу {conn_str}")
+    if database_url:
+        engine = sa.create_engine(database_url)
+    else:
+        if not db_file or not db_file.strip():
+            db_file = "db/wishly.db"
+        conn_str = f'sqlite:///{db_file.strip()}?check_same_thread=False'
+        engine = sa.create_engine(conn_str, echo=False)
 
-    engine = sa.create_engine(conn_str, echo=False)
     __factory = orm.sessionmaker(bind=engine)
 
     from . import __all_models
@@ -30,5 +34,8 @@ def global_init(db_file):
 def create_session() -> Session:
     global __factory
     if __factory is None:
-        global_init("db/wishly.db")
+        if os.environ.get('DATABASE_URL'):
+            global_init(None)
+        else:
+            global_init("db/wishly.db")
     return __factory()
