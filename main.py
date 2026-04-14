@@ -16,7 +16,6 @@ from datetime import *
 import os
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
-from datetime import date
 
 load_dotenv()
 

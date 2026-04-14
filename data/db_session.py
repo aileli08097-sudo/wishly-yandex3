@@ -29,4 +29,6 @@ def global_init(db_file):
 
 def create_session() -> Session:
     global __factory
+    if __factory is None:
+        global_init("db/wishly.db")
     return __factory()
