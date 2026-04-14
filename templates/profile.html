@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-center">Ваш профиль</h1>
+<h2 class="text-center">Ваш профиль</h2>
 <p><b>Имя пользователя:</b> {{ user.username }}</p>
 <p><b>Почта:</b> {{ user.email }}</p>
 <p><b>Дата регистрации:</b> {{ user.modified_date.strftime("%d.%m.%Y") }}</p>
@@ -10,7 +10,11 @@
     <div class="table_container">
           <ol>
             {% for item in sub_lists %}
+              {% if item in soon %}
+              <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}(Осталось меньше недели!)</a></li>
+              {% else %}
               <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}</a></li>
+              {% endif %}
             {% endfor %}
           </ol>
     </div>
@@ -22,14 +26,16 @@
     <div class="table_container">
           <ol>
             {% for item in lists %}
-              {% if item %}
+              {% if item in soon %}
+              <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}(Осталось меньше недели!)</a></li>
+              {% else %}
               <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}</a></li>
               {% endif %}
             {% endfor %}
           </ol>
-      <a class="nav-link btn btn-outline-info" style="width: 300px;" href="/add_list">Создать новый вишлист</a>
+      <a class="nav-link btn btn-primary" style="width: 300px;" href="/add_list">Создать новый вишлист</a>
     </div>
 {% else %}
-<a class="nav-link btn btn-outline-info" style="width: 200px;" href="/add_list">Создать вишлист</a>
+<a class="nav-link btn btn-primary" style="width: 200px;" href="/add_list">Создать вишлист</a>
 {% endif %}
 {% endblock %}

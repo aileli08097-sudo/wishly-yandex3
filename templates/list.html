@@ -3,11 +3,12 @@
 {% block content %}
 {% if lst %}
 <h2 class="text-center">Вишлист "{{lst.feast}}"</h2>
+<h4 class="text-center">Дата: {{ lst.date.strftime("%d.%m.%Y") }}</h4>
 {% if not is_shared_view %}
 <p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
 <div class="d-flex justify-content-center">
     <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить
-        желание</a><a class="nav-link btn btn-outline-danger delete-wishlist-btn" style="width: 300px;"
+        желание</a><a class="nav-link btn btn-outline-warning delete-wishlist-btn" style="width: 300px;"
             data-wishlist-id="{{ lst.id }}"
             data-wishlist-name="{{ lst.feast }}">Удалить вишлист</a>
 </div>

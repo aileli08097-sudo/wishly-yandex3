@@ -16,6 +16,7 @@ from datetime import *
 import os
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
+from datetime import date
 
 load_dotenv()
 
@@ -56,7 +57,7 @@ def index():
         users = db_sess.query(User).all()
         names = {item.id: f'{item.username}' for item in users}
         aut = True
-    return render_template('index.html', lists=lst, names=names, aut=aut)
+    return render_template('index.html', lists=sorted(lst, key=lambda x: (x.date, x.time)), names=names, aut=aut)
 
 
 @application.route('/profile')
@@ -64,13 +65,21 @@ def index():
 def profile():
     db_sess = db_session.create_session()
     sub_lists = set()
+    soon = set()
     for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
         if book is not None:
-            sub_lists.add(db_sess.query(Lists).join(
-                Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
+            b = db_sess.query(Lists).join(
+                Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first()
+            sub_lists.add(b)
+            if 0 < (b.date - date.today()).days < 7 and b.notification:
+                soon.add(b)
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
+    for l in lists:
+        if l is not None:
+            if 0 < (l.date - date.today()).days < 7:
+                soon.add(l)
     user = db_sess.query(User).filter(User.id == current_user.id).first()
-    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user)
+    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user, soon=list(soon))
 
 
 @application.route('/login', methods=['GET', 'POST'])
