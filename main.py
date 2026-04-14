@@ -89,24 +89,26 @@ def profile():
 @application.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
+    next = request.args.get('next')
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.username == form.username.data).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember_me.data)
-            next = request.args.get('next')
+            next = request.form.get('next') or next
             if next and next.startswith('/'):
                 return redirect(next)
             return redirect('/')
         return render_template('login.html',
                                message="Неправильный логин или пароль",
                                form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+    return render_template('login.html', form=form, next=next)
 
 
 @application.route('/registration', methods=['GET', 'POST'])
 def registration():
     form = RegistrForm()
+    next = request.args.get('next')
     if form.validate_on_submit():
         db_sess = db_session.create_session()
         try:
@@ -127,9 +129,9 @@ def registration():
                     db_sess.add(user)
                     db_sess.commit()
                     login_user(user, remember=form.remember_me.data)
-                    next_page = request.args.get('next')
-                    if next_page and next_page.startswith('/'):
-                        return redirect(next_page)
+                    next = request.args.get('next') or next
+                    if next and next.startswith('/'):
+                        return redirect(next)
                     return redirect('/')
                 return render_template('registr.html',
                                        message="Пароли не совпадают",
@@ -145,8 +147,7 @@ def registration():
             return render_template('registr.html',
                                    message="Это имя пользователя уже занято",
                                    form=form)
-    return render_template('registr.html', title='Регистрация',
-                           form=form)
+    return render_template('registr.html', form=form, next=next)
 
 
 @application.route('/add_list', methods=['GET', 'POST'])
@@ -277,7 +278,6 @@ def delete_wish(list_id, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/book', methods=['GET', 'POST'])
-@login_required
 def book_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()
@@ -311,7 +311,6 @@ def book_wish(token, wish_id):
 
 
 @application.route('/shared/<string:token>/<int:wish_id>/unbook', methods=['GET', 'POST'])
-@login_required
 def unbook_wish(token, wish_id):
     db_sess = db_session.create_session()
     lst = db_sess.query(Lists).filter(Lists.token == token).first()

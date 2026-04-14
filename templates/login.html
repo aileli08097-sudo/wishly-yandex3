@@ -23,9 +23,10 @@
     {% endfor %}
     </p>
     <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+    <input type="hidden" name="next" value="{{ next or request.args.get('next', '') }}">
     <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
     <p>Нет аккаунта?</p>
-    <a class="nav-link btn btn-outline-success" style="width: 200px;" href="/registration">Зарегистрируйтесь</a>
+    <a class="nav-link btn btn-outline-success" style="width: 200px;" href="/registration?next={{ next or request.args.get('next', '') }}">Зарегистрируйтесь</a>
     <div>{{ message }}</div>
 </form>
 {% endblock %}
