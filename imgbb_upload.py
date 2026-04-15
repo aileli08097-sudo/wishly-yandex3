@@ -2,7 +2,7 @@ import requests
 import os
 import base64
 
-IMGBB_API_KEY = os.environ.get('IMGBB_API_KEY')
+IMGBB_API_KEY = '3190c2fdb6cdab39acd465831528552b'
 IMGBB_API_URL = 'https://api.imgbb.com/1/upload'
 
 
