@@ -388,7 +388,7 @@ def main():
     application.register_blueprint(lists_api.blueprint)
     api.add_resource(UserListResource, '/api/v2/users')
     api.add_resource(UserResource, '/api/v2/users/<int:user_id>')
-    application.run(debug=True)
+    application.run()
 
 
 if __name__ == '__main__':
