@@ -16,6 +16,7 @@ from datetime import *
 import os
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
+from imgbb_upload import image_imgbb
 
 load_dotenv()
 
@@ -267,10 +268,6 @@ def delete_wish(list_id, wish_id):
     wishbooks = db_sess.query(WishBook).filter(WishBook.wish_id == wish_id).all()
     for book in wishbooks:
         db_sess.delete(book)
-    if wish.img_fn:
-        file_path = os.path.join(application.config['UPLOAD_FOLDER'], wish.img_fn)
-        if os.path.exists(file_path):
-            os.remove(file_path)
     db_sess.delete(wish)
     db_sess.commit()
 
@@ -349,21 +346,20 @@ def add_wish(list_id):
     if lst.user_id == current_user.id:
         form = WishForm()
         if form.validate_on_submit():
-            filename = None
-            if form.img.data:
+            image_url = None
+            if form.img.data and form.img.data.filename:
                 file = form.img.data
-                filename = secure_filename(file.filename)
-                import uuid
-                unique_fn = f"{uuid.uuid4().hex}_{filename}"
-                file_path = os.path.join(application.config['UPLOAD_FOLDER'], unique_fn)
-                file.save(file_path)
-                filename = unique_fn
+                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
+                    image_url = image_imgbb(file)
+                    if not image_url:
+                        flash('Не удалось загрузить изображение.', 'danger')
+                        return redirect(f'/list{list_id}/add_wish')
             wish = Wishes()
             wish.name = form.name.data
             wish.bio = form.bio.data
             wish.url = form.url.data
             wish.list_id = list_id
-            wish.img_fn = filename
+            wish.img_url = image_url
             db_sess.add(wish)
             db_sess.commit()
             return redirect(f'/list{list_id}')
@@ -391,7 +387,7 @@ def main():
     application.register_blueprint(lists_api.blueprint)
     api.add_resource(UserListResource, '/api/v2/users')
     api.add_resource(UserResource, '/api/v2/users/<int:user_id>')
-    application.run()
+    application.run(debug=True)
 
 
 if __name__ == '__main__':

@@ -51,11 +51,9 @@
             {% else %}
             <td class="ordinary" bgcolor="#eeeeff">Без ссылки</td>
             {% endif %}
-            {% if item.img_fn %}
+            {% if item.img_url %}
             <td class="ordinary" bgcolor="#eeeeff">
-                <img src="/uploads/{{ item.img_fn }}"
-                     alt="{{ item.name }}"
-                     style="max-width: 400px; max-height: 200px;">
+                <img src="{{ item.img_url }}" alt="{{ item.name }}" style="max-width: 200px; max-height: 200px;">
             </td>
             {% else %}
             <td class="ordinary" bgcolor="#eeeeff">Без изображения</td>
