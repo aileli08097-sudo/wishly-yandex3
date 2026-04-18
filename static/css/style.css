@@ -289,3 +289,40 @@ h1, h2, h3, h4, h5 {
     color: var(--text-dark);
     transform: translateX(5px);
 }
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .wishlist-card {
+        margin-bottom: 15px;
+    }
+
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .btn-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .table img {
+        max-width: 60px;
+        max-height: 60px;
+    }
+}
