@@ -250,6 +250,37 @@ def delete_list(list_id):
     return redirect('/')
 
 
+@application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
+@login_required
+def add_wish(list_id):
+    db_sess = db_session.create_session()
+    lst = db_sess.get(Lists, list_id)
+    if lst.user_id == current_user.id:
+        form = WishForm()
+        if form.validate_on_submit():
+            image_url = None
+            if form.img.data and form.img.data.filename:
+                file = form.img.data
+                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
+                    image_url = image_imgbb(file)
+                    if not image_url:
+                        flash('Не удалось загрузить изображение.', 'danger')
+                        return redirect(f'/list{list_id}/add_wish')
+            wish = Wishes()
+            wish.name = form.name.data
+            wish.bio = form.bio.data
+            wish.url = form.url.data
+            wish.list_id = list_id
+            wish.img_url = image_url
+            db_sess.add(wish)
+            db_sess.commit()
+            return redirect(f'/list{list_id}')
+        return render_template('add_wish.html', title='Добавление желания',
+                               form=form)
+    else:
+        return redirect(request.referrer or '/')
+
+
 @application.route('/list<list_id>/<int:wish_id>/delete', methods=['POST'])
 @login_required
 def delete_wish(list_id, wish_id):
@@ -338,40 +369,24 @@ def unbook_wish(token, wish_id):
     return redirect(f'/shared/{token}')
 
 
-@application.route('/list<int:list_id>/add_wish', methods=['GET', 'POST'])
-@login_required
-def add_wish(list_id):
-    db_sess = db_session.create_session()
-    lst = db_sess.get(Lists, list_id)
-    if lst.user_id == current_user.id:
-        form = WishForm()
-        if form.validate_on_submit():
-            image_url = None
-            if form.img.data and form.img.data.filename:
-                file = form.img.data
-                if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
-                    image_url = image_imgbb(file)
-                    if not image_url:
-                        flash('Не удалось загрузить изображение.', 'danger')
-                        return redirect(f'/list{list_id}/add_wish')
-            wish = Wishes()
-            wish.name = form.name.data
-            wish.bio = form.bio.data
-            wish.url = form.url.data
-            wish.list_id = list_id
-            wish.img_url = image_url
-            db_sess.add(wish)
-            db_sess.commit()
-            return redirect(f'/list{list_id}')
-        return render_template('add_wish.html', title='Добавление желания',
-                               form=form)
-    else:
-        return redirect(request.referrer or '/')
-
-
 @application.route('/uploads/<path:filename>')
 def uploaded_file(filename):
     return send_from_directory(application.config['UPLOAD_FOLDER'], filename)
+
+
+@application.errorhandler(404)
+def page_not_found(error):
+    return render_template('errors/404.html'), 404
+
+
+@application.errorhandler(403)
+def forbidden(error):
+    return render_template('errors/403.html'), 403
+
+
+@application.errorhandler(500)
+def server_error(error):
+    return render_template('errors/500.html'), 500
 
 
 @application.route('/logout')

@@ -331,3 +331,34 @@ img {
     max-width: 100%;
     height: auto;
 }
+
+.error-template {
+    padding: 40px 15px;
+    background: var(--white);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+}
+
+.error-template h1 {
+    font-size: 120px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.error-template h2 {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+.error-details {
+    color: var(--text-light);
+    line-height: 1.6;
+}
+
+.error-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}

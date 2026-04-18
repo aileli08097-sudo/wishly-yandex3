@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-template">
+                <h1 class="display-1 text-muted">404</h1>
+                <h2 class="mb-3">Страница не найдена</h2>
+                <div class="error-details mb-4">
+                    <p>Извините, страница не существует или была перемещена.</p>
+                    <p>Проверьте правильность ссылки или вернитесь на главную.</p>
+                </div>
+                <div class="error-actions">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> На главную
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

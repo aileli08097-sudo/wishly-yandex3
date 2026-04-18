@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="error-template">
+                <h1 class="display-1 text-danger">500</h1>
+                <h2 class="mb-3">Внутренняя ошибка сервера</h2>
+                <div class="error-details mb-4">
+                    <p>Что-то пошло не так.</p>
+                    <p>Попробуйте позже.</p>
+                </div>
+                <div class="error-actions">
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-home"></i> На главную
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
