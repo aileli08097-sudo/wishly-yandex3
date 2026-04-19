@@ -60,6 +60,13 @@ def index():
                     Wishes, Wishes.list_id == Lists.id).filter(Wishes.id == book.wish_id).first())
         lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
         lst = list(sub_lists) + lists
+        for l in lst:
+            if 0 <= (l.date - date.today()).days < 7:
+                l.clr = 'pink'
+            elif (l.date - date.today()).days < 0:
+                l.clr = 'red'
+            else:
+                l.clr = ''
         users = db_sess.query(User).all()
         names = {item.id: f'{item.username}' for item in users}
         aut = True
@@ -72,6 +79,7 @@ def profile():
     db_sess = db_session.create_session()
     sub_lists = set()
     soon = set()
+    end = set()
     for book in db_sess.query(WishBook).filter(WishBook.user_id == current_user.id).all():
         if book is not None:
             b = db_sess.query(Lists).join(
@@ -82,10 +90,12 @@ def profile():
     lists = db_sess.query(Lists).filter(Lists.user_id == current_user.id).all()
     for l in lists:
         if l is not None:
-            if 0 < (l.date - date.today()).days < 7:
+            if 0 <= (l.date - date.today()).days < 7:
                 soon.add(l)
+            elif (l.date - date.today()).days < 0:
+                end.add(l)
     user = db_sess.query(User).filter(User.id == current_user.id).first()
-    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user, soon=list(soon))
+    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user, soon=list(soon), end=list(end))
 
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -188,6 +198,9 @@ def lst(list_id):
         ).first():
             return redirect(f'/shared/{lst.token}')
     if lst.user_id == current_user.id:
+        end = False
+        if (lst.date - date.today()).days < 0:
+            end = True
         wishes = db_sess.query(Wishes).filter_by(list_id=list_id).all()
         is_book = []
         for wish in wishes:
@@ -197,7 +210,7 @@ def lst(list_id):
             else:
                 is_book.append((wish.id, False))
         url = url_for('shared_lst', token=lst.token, _external=True)
-        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book)
+        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book, end=end)
     else:
         flash('Вишлист не найден', 'danger')
         return redirect(request.referrer or '/')
@@ -211,6 +224,9 @@ def shared_lst(token):
         flash('Вишлист не найден', 'danger')
         return redirect(request.referrer or '/')
     if not current_user.is_authenticated or lst.user_id != current_user.id:
+        end = False
+        if (lst.date - date.today()).days < 0:
+            end = True
         is_book = []
         wishes = db_sess.query(Wishes).filter_by(list_id=lst.id).all()
         for wish in wishes:
@@ -221,7 +237,7 @@ def shared_lst(token):
                 is_book.append((wish.id, False))
         autor = db_sess.query(User).join(Lists, Lists.user_id == User.id).filter(Lists.id == lst.id).first()
         return render_template('list.html', lst=lst, wishes=wishes, is_shared_view=True, is_book=is_book, token=token,
-                               autor=autor)
+                               autor=autor, end=end)
     else:
         return redirect(f'/list{lst.id}')
 

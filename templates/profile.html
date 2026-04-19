@@ -10,8 +10,10 @@
     <div class="table_container">
           <ol>
             {% for item in sub_lists %}
-              {% if item in soon %}
-              <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}(Осталось меньше недели!)</a></li>
+              {% if item in soon and item.notification%}
+              <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}(Осталось меньше недели)</a></li>
+              {% elif item in end %}
+              <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}(Дата события уже прошла)</a></li>
               {% else %}
               <li class="ordinary"><a href="/shared/{{ item.token }}">{{ item.feast }}</a></li>
               {% endif %}
@@ -26,8 +28,10 @@
     <div class="table_container">
           <ol>
             {% for item in lists %}
-              {% if item in soon %}
-              <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}(Осталось меньше недели!)</a></li>
+              {% if item in soon and item.notification%}
+              <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}(Осталось меньше недели)</a></li>
+              {% elif item in end %}
+              <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}(Дата события уже прошла)</a></li>
               {% else %}
               <li class="ordinary"><a href="/list{{ item.id }}">{{ item.feast }}</a></li>
               {% endif %}

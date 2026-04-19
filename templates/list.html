@@ -4,14 +4,25 @@
 {% if lst %}
 <h2 class="text-center">Вишлист "{{lst.feast}}"</h2>
 <h4 class="text-center">Дата: {{ lst.date.strftime("%d.%m.%Y") }}</h4>
+{% if end %}
+<p>Дата этого вишлиста уже прошла!</p>
+{% endif %}
 {% if not is_shared_view %}
+{% if not end %}
 <p><b>Ссылка этого вишлиста:</b> <a href="{{ url }}">{{ url }}</a>. Поделитесь ею с близкими!</p>
 <div class="d-flex justify-content-center">
     <a class="nav-link btn btn-outline-warning" style="width: 300px;" href="/list{{ lst.id }}/add_wish">Добавить
         желание</a><a class="nav-link btn btn-outline-warning delete-wishlist-btn" style="width: 300px;"
-            data-wishlist-id="{{ lst.id }}"
-            data-wishlist-name="{{ lst.feast }}">Удалить вишлист</a>
+                      data-wishlist-id="{{ lst.id }}"
+                      data-wishlist-name="{{ lst.feast }}">Удалить вишлист</a>
 </div>
+{% else %}
+<div class="d-flex justify-content-center">
+    <a class="nav-link btn btn-outline-warning delete-wishlist-btn" style="width: 300px;"
+       data-wishlist-id="{{ lst.id }}"
+       data-wishlist-name="{{ lst.feast }}">Удалить вишлист</a>
+</div>
+{% endif %}
 {% else %}
 <h5 class="text-center">Автор: {{autor.username}}</h5>
 {% endif %}
@@ -58,19 +69,23 @@
             {% else %}
             <td class="ordinary" bgcolor="#eeeeff">Без изображения</td>
             {% endif %}
-            {% for book in is_book %}
-            {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
-            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/unbook">Отказаться от
-                брони</a></td>
-            {% elif book[1] and book[0].wish_id == item.id %}
-            <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
-            {% elif not book[1] and book[0] == item.id and lst.user_id != current_user.id %}
-            <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/book">Забронировать</a>
-            </td>
-            {% elif not book[1] and book[0] == item.id %}
-            <td class="ordinary" bgcolor="#eeeeff">Не забронировано</td>
+            {% if not end %}
+                {% for book in is_book %}
+                {% if book[1] and book[0].wish_id == item.id and book[0].user_id == current_user.id %}
+                <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/unbook">Отказаться от
+                    брони</a></td>
+                {% elif book[1] and book[0].wish_id == item.id %}
+                <td class="ordinary" bgcolor="#eeeeff">Забронировано</td>
+                {% elif not book[1] and book[0] == item.id and lst.user_id != current_user.id %}
+                <td class="ordinary" bgcolor="#eeeeff"><a href="/shared/{{ token }}/{{ item.id }}/book">Забронировать</a>
+                </td>
+                {% elif not book[1] and book[0] == item.id %}
+                <td class="ordinary" bgcolor="#eeeeff">Не забронировано</td>
+                {% endif %}
+                {% endfor %}
+            {% else %}
+            <td class="ordinary" bgcolor="#eeeeff">Уже нельзя забронировать</td>
             {% endif %}
-            {% endfor %}
         </tr>
         {% endfor %}
         </tbody>
@@ -97,36 +112,36 @@
 
 {% block scripts %}
 <script>
-document.querySelectorAll('.delete-wish-link').forEach(link => {
-link.addEventListener('click', function(e) {
-e.preventDefault();
-const wishId = this.dataset.wishId;
-const wishName = this.dataset.wishName;
-const listId = this.dataset.listId;
-if (confirm(`Вы уверены, что хотите удалить желание "${wishName}"?`)) {
-const form = document.createElement('form');
-form.method = 'POST';
-form.action = `/list${listId}/${wishId}/delete`;
-document.body.appendChild(form);
-form.submit();
-}
-});
-});
+    document.querySelectorAll('.delete-wish-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+    e.preventDefault();
+    const wishId = this.dataset.wishId;
+    const wishName = this.dataset.wishName;
+    const listId = this.dataset.listId;
+    if (confirm(`Вы уверены, что хотите удалить желание "${wishName}"?`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/list${listId}/${wishId}/delete`;
+    document.body.appendChild(form);
+    form.submit();
+    }
+    });
+    });
 
-const deleteWishlistBtn = document.querySelector('.delete-wishlist-btn');
-if (deleteWishlistBtn) {
-deleteWishlistBtn.addEventListener('click', function(e) {
-e.preventDefault();
-const wishlistId = this.dataset.wishlistId;
-const wishlistName = this.dataset.wishlistName;
-if (confirm(`Вы уверены, что хотите удалить вишлист "${wishlistName}"?`)) {
-const form = document.createElement('form');
-form.method = 'POST';
-form.action = `/list${wishlistId}/delete`;
-document.body.appendChild(form);
-form.submit();
-}
-});
-}
+    const deleteWishlistBtn = document.querySelector('.delete-wishlist-btn');
+    if (deleteWishlistBtn) {
+    deleteWishlistBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    const wishlistId = this.dataset.wishlistId;
+    const wishlistName = this.dataset.wishlistName;
+    if (confirm(`Вы уверены, что хотите удалить вишлист "${wishlistName}"?`)) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = `/list${wishlistId}/delete`;
+    document.body.appendChild(form);
+    form.submit();
+    }
+    });
+    }
 </script>
 {% endblock %}

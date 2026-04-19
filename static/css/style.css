@@ -362,3 +362,13 @@ img {
     justify-content: center;
     flex-wrap: wrap;
 }
+
+.pink-date {
+    background: linear-gradient(90deg, #FFE4E1 0%, #FFF5F3 100%);
+    transition: all 0.3s ease;
+}
+
+.red-date {
+    background: linear-gradient(90deg, #FF6B6B 0%, #FFF5F3 100%);
+    transition: all 0.3s ease;
+}
