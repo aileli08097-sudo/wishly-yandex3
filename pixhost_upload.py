@@ -32,7 +32,7 @@ def image_pixhost(file):
         print(result)
         print(f"======================")
         if result.get('status_code') == 200:
-            image_url = result.get('show_url')
+            image_url = f"https://img.pixhost.to/images/{result.get('show_url').split('/')[-1]}"
             print(f"✅ УСПЕХ! URL: {image_url}")
             return image_url
         print(f"❌ Не найден URL в ответе")
