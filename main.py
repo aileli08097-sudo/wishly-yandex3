@@ -277,11 +277,17 @@ def add_wish(list_id):
             image_url = None
             if form.img.data and form.img.data.filename:
                 file = form.img.data
+                print(f"=== img_file: {file} ===")
+                print(f"=== img_file.filename: {file.filename if file else 'None'} ===")
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
+                    print("=== Начинаем загрузку в ImgBB ===")
                     image_url = image_imgbb(file)
+                    print(f"=== Результат загрузки (image_url): {image_url} ===")
                     if not image_url:
+                        print("=== Ошибка: image_url пустой ===")
                         flash('Не удалось загрузить изображение.', 'danger')
                         return redirect(f'/list{list_id}/add_wish')
+                    print(f"=== Успех! Ссылка: {image_url} ===")
             wish = Wishes()
             wish.name = form.name.data
             wish.bio = form.bio.data
