@@ -31,7 +31,10 @@ def image_imgbb(file):
             'name': file.filename
         }
     )
-    print(f"Код ответа ImgBB: {response.status_code}")
+    print(f"=== ОТВЕТ IMGBB ===")
+    print(f"Статус: {response.status_code}")
+    print(f"Текст ответа: {response.text}")
+    print(f"=================")
     if response.status_code == 200:
         result = response.json()
         if result.get('success'):
