@@ -28,8 +28,12 @@ def image_pixhost(file):
 
     if response.status_code == 200:
         result = response.json()
+        print(f"=== ПОЛНЫЙ ОТВЕТ API ===")
+        print(result)
+        print(f"======================")
         if result.get('status_code') == 200:
-            image_url = result.get('show_url')
+            image_url = result.get('show_url') or result.get('full_size_image') or result.get(
+                'image_url') or result.get('url')
             print(f"✅ УСПЕХ! URL: {image_url}")
             return image_url
         error_msg = result.get('error', {}).get('message', 'Неизвестная ошибка')
