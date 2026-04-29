@@ -1,36 +1,35 @@
 import requests
-import os
 
-FREEIMAGE_API_KEY = os.environ.get('FREEIMAGE_API_KEY')
-FREEIMAGE_API_URL = 'https://freeimage.host/api/1/upload'
+PIXHOST_API_URL = "https://api.pixhost.to/images"
 
 
-def image_freeimage(file):
-    print("=== image_freeimage ВЫЗВАНА ===")
+def image_pixhost(file):
+    print("=== Pixhost загрузка ===")
+
     print(f"Файл: {file}")
     print(f"Имя файла: {file.filename if file else 'None'}")
     if not file or not file.filename:
         print("Ошибка: файл пустой или нет имени")
         return None
-    files = {'source': (file.filename, file.stream, file.mimetype)}
-    data = {
-        'key': FREEIMAGE_API_KEY,
-        'action': 'upload',
-        'format': 'json'
+    files = {
+        'img': (file.filename, file.stream, file.mimetype),
     }
-    print(f"Отправка запроса к FreeImage.Host...")
+    data = {
+        'content_type': '0',
+        'max_th_size': '420'
+    }
+    print(f"Отправка файла {file.filename}...")
     response = requests.post(
-        FREEIMAGE_API_URL,
+        PIXHOST_API_URL,
         data=data,
-        files=files,
-        timeout=30
+        files=files
     )
     print(f"Код ответа: {response.status_code}")
 
     if response.status_code == 200:
         result = response.json()
         if result.get('status_code') == 200:
-            image_url = result['image']['url']
+            image_url = result.get('show_url')
             print(f"✅ УСПЕХ! URL: {image_url}")
             return image_url
         error_msg = result.get('error', {}).get('message', 'Неизвестная ошибка')
