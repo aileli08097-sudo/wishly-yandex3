@@ -16,7 +16,7 @@ from datetime import *
 import os
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
-from pixhost_upload import image_pixhost
+from freeimage_upload import image_freeimage
 
 load_dotenv()
 
@@ -95,7 +95,8 @@ def profile():
             elif (l.date - date.today()).days < 0:
                 end.add(l)
     user = db_sess.query(User).filter(User.id == current_user.id).first()
-    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user, soon=list(soon), end=list(end))
+    return render_template('profile.html', sub_lists=list(sub_lists), lists=lists, user=user, soon=list(soon),
+                           end=list(end))
 
 
 @application.route('/login', methods=['GET', 'POST'])
@@ -210,7 +211,8 @@ def lst(list_id):
             else:
                 is_book.append((wish.id, False))
         url = url_for('shared_lst', token=lst.token, _external=True)
-        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book, end=end)
+        return render_template('list.html', lst=lst, wishes=wishes, url=url, is_shared_view=False, is_book=is_book,
+                               end=end)
     else:
         flash('Вишлист не найден', 'danger')
         return redirect(request.referrer or '/')
@@ -277,17 +279,11 @@ def add_wish(list_id):
             image_url = None
             if form.img.data and form.img.data.filename:
                 file = form.img.data
-                print(f"=== img_file: {file} ===")
-                print(f"=== img_file.filename: {file.filename if file else 'None'} ===")
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
-                    print("=== Начинаем загрузку ===")
-                    image_url = image_pixhost(file)
-                    print(f"=== Результат загрузки (image_url): {image_url} ===")
+                    image_url = image_freeimage(file)
                     if not image_url:
-                        print("=== Ошибка: image_url пустой ===")
                         flash('Не удалось загрузить изображение.', 'danger')
                         return redirect(f'/list{list_id}/add_wish')
-                    print(f"=== Успех! Ссылка: {image_url} ===")
             wish = Wishes()
             wish.name = form.name.data
             wish.bio = form.bio.data
