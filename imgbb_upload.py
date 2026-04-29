@@ -7,7 +7,7 @@ IMGBB_API_URL = 'https://api.imgbb.com/1/upload'
 
 
 def image_imgbb(file):
-    print("=== upload_image_to_imgbb ВЫЗВАНА ===")
+    print("=== image_imgbb ВЫЗВАНА ===")
     print(f"Файл: {file}")
     print(f"Имя файла: {file.filename if file else 'None'}")
     if not file or not file.filename:
