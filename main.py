@@ -281,6 +281,7 @@ def add_wish(list_id):
                 file = form.img.data
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
                     image_url = image_freeimage(file)
+                    print(f"=== Результат загрузки (image_url): {image_url} ===")
                     if not image_url:
                         flash('Не удалось загрузить изображение.', 'danger')
                         return redirect(f'/list{list_id}/add_wish')
