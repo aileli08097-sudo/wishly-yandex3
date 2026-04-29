@@ -12,6 +12,10 @@ def image_imgbb(file):
     file_data = file.read()
     if not file_data:
         return None
+    print(f"API KEY exists: {bool(IMGBB_API_KEY)}")
+    if not IMGBB_API_KEY:
+        print("ОШИБКА: API ключ ImgBB не найден!")
+        return None
     code_file = base64.b64encode(file_data).decode('utf-8')
     response = requests.post(
         IMGBB_API_URL,
