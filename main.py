@@ -16,7 +16,7 @@ from datetime import *
 import os
 from flask_mail import Mail
 from werkzeug.utils import secure_filename
-from imgbb_upload import image_imgbb
+from freeimage_upload import image_freeimage
 
 load_dotenv()
 
@@ -281,7 +281,7 @@ def add_wish(list_id):
                 print(f"=== img_file.filename: {file.filename if file else 'None'} ===")
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
                     print("=== Начинаем загрузку в ImgBB ===")
-                    image_url = image_imgbb(file)
+                    image_url = image_freeimage(file)
                     print(f"=== Результат загрузки (image_url): {image_url} ===")
                     if not image_url:
                         print("=== Ошибка: image_url пустой ===")
