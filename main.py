@@ -280,7 +280,7 @@ def add_wish(list_id):
                 print(f"=== img_file: {file} ===")
                 print(f"=== img_file.filename: {file.filename if file else 'None'} ===")
                 if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ['png', 'jpg', 'jpeg', 'gif']:
-                    print("=== Начинаем загрузку в ImgBB ===")
+                    print("=== Начинаем загрузку ===")
                     image_url = image_freeimage(file)
                     print(f"=== Результат загрузки (image_url): {image_url} ===")
                     if not image_url:
