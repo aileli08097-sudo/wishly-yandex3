@@ -32,11 +32,9 @@ def image_pixhost(file):
         print(result)
         print(f"======================")
         if result.get('status_code') == 200:
-            image_url = result.get('show_url') or result.get('full_size_image') or result.get(
-                'image_url') or result.get('url')
+            image_url = result.get('show_url')
             print(f"✅ УСПЕХ! URL: {image_url}")
             return image_url
-        error_msg = result.get('error', {}).get('message', 'Неизвестная ошибка')
-        print(f"❌ Ошибка API: {error_msg}")
+        print(f"❌ Не найден URL в ответе")
         return None
     return None
